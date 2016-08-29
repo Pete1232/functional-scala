@@ -38,4 +38,28 @@ class SimpleStreamSpec extends FlatSpec with MustMatchers {
   it must "return None otherwise" in {
     apply().headOption mustBe None
   }
+
+  "SimpleStream#tail" must "return the tail of the stream" in {
+    SimpleStream(5, 6, 7).tail.toList mustBe List(6, 7)
+    SimpleStream(5).tail mustBe Empty
+    Empty.tail mustBe Empty
+  }
+
+  "SimpleStream#toList" must "convert the stream to a list" in {
+    SimpleStream(5, 6, 7).toList mustBe List(5, 6, 7)
+  }
+
+  "SimpleStream#take" must "return the first n elements of a SimpleStream" in {
+    SimpleStream(5, 6, 7).take(1).toList mustBe SimpleStream(5).toList
+    SimpleStream(5, 6, 7).take(2).toList mustBe SimpleStream(5, 6).toList
+    SimpleStream(5, 6, 7).take(3).toList mustBe SimpleStream(5, 6, 7).toList
+    SimpleStream(5, 6, 7).take(0) mustBe Empty
+  }
+
+  "SimpleStream#drop" must "drop the first n elements of a SimpleStream" in {
+    SimpleStream(5, 6, 7).drop(1).toList mustBe SimpleStream(6, 7).toList
+    SimpleStream(5, 6, 7).drop(2).toList mustBe SimpleStream(7).toList
+    SimpleStream(5, 6, 7).drop(3) mustBe Empty
+    SimpleStream(5, 6, 7).drop(0).toList mustBe SimpleStream(5, 6, 7).toList
+  }
 }
