@@ -36,13 +36,7 @@ sealed trait SimpleStream[+A] {
     )
 
   def takeWhile(p: A => Boolean): SimpleStream[A] =
-    emptyOrCons(
-      Empty,
-      (h, t) => {
-//        headOption cannot be None here
-        if(p(h())) Cons(() => headOption.get, () => t().takeWhile(p)) else Empty
-      }
-    )
+    foldRight(Empty: SimpleStream[A])((h, stream) => if(p(h)) SimpleStream.cons(h, stream) else Empty)
 
   def exists(p: A => Boolean): Boolean =
     emptyOrCons(
