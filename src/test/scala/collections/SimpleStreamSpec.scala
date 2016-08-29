@@ -50,16 +50,21 @@ class SimpleStreamSpec extends FlatSpec with MustMatchers {
   }
 
   "SimpleStream#take" must "return the first n elements of a SimpleStream" in {
-    SimpleStream(5, 6, 7).take(1).toList mustBe SimpleStream(5).toList
-    SimpleStream(5, 6, 7).take(2).toList mustBe SimpleStream(5, 6).toList
-    SimpleStream(5, 6, 7).take(3).toList mustBe SimpleStream(5, 6, 7).toList
+    SimpleStream(5, 6, 7).take(1).toList mustBe List(5)
+    SimpleStream(5, 6, 7).take(2).toList mustBe List(5, 6)
+    SimpleStream(5, 6, 7).take(3).toList mustBe List(5, 6, 7)
     SimpleStream(5, 6, 7).take(0) mustBe Empty
   }
 
   "SimpleStream#drop" must "drop the first n elements of a SimpleStream" in {
-    SimpleStream(5, 6, 7).drop(1).toList mustBe SimpleStream(6, 7).toList
-    SimpleStream(5, 6, 7).drop(2).toList mustBe SimpleStream(7).toList
+    SimpleStream(5, 6, 7).drop(1).toList mustBe List(6, 7)
+    SimpleStream(5, 6, 7).drop(2).toList mustBe List(7)
     SimpleStream(5, 6, 7).drop(3) mustBe Empty
-    SimpleStream(5, 6, 7).drop(0).toList mustBe SimpleStream(5, 6, 7).toList
+    SimpleStream(5, 6, 7).drop(0).toList mustBe List(5, 6, 7)
+  }
+
+  "SimpleStream#takeWhile" must "take all values until a predicate is not satisfied" in {
+    SimpleStream(5, 6, 7).takeWhile(_ != 7).toList mustBe List(5, 6)
+    SimpleStream(5, 6, 7).takeWhile(_ => false) mustBe Empty
   }
 }

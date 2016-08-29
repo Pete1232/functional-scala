@@ -35,8 +35,17 @@ sealed trait SimpleStream[+A] {
       }
     )
 
+  def takeWhile(p: A => Boolean): SimpleStream[A] =
+    emptyOrCons(
+      Empty,
+      (h, t) => {
+//        headOption cannot be None here
+        if(p(h())) Cons(() => headOption.get, () => t().takeWhile(p)) else Empty
+      }
+    )
+
   //  was repeating this in every implementation
-  private def emptyOrCons[B](onEmpty: B, onCons: (() => A, () => SimpleStream[A]) => B) = this match {
+  private def emptyOrCons[B](onEmpty: => B, onCons: (() => A, () => SimpleStream[A]) => B) = this match {
     case Empty => onEmpty
     case Cons(h, t) => onCons(h, t)
   }
