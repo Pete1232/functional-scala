@@ -86,4 +86,12 @@ class SimpleStreamSpec extends FlatSpec with MustMatchers {
   it must "return false otherwise" in {
     SimpleStream(5, 6, 15).forAll(_ % 5 == 0) mustBe false
   }
+
+  "SimpleStream#map" must "convert the elements of the stream according to the given function" in {
+    SimpleStream(5, 6, 7).map(_ + 10).toList mustBe List(15, 16, 17)
+  }
+
+  "SimpleStream#append" must "append the given element to the end of the stream" in {
+    SimpleStream(5, 6).append(7).toList mustBe List(5, 6, 7)
+  }
 }

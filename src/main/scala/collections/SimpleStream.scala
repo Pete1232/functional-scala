@@ -54,6 +54,17 @@ sealed trait SimpleStream[+A] {
   def forAll(p: A => Boolean): Boolean =
     foldRight(true)((x, y) => p(x) && y)
 
+  def map[B](m: A => B): SimpleStream[B] =
+    foldRight(Empty: SimpleStream[B])((a, b) => SimpleStream.cons(m(a), b))
+
+//  http://docs.scala-lang.org/tutorials/tour/variances.html
+//  Also see Programming in Scala (3rd ed) 19.4 and 19.5
+//  Method parameters flip the positions classification; in this case from + to -
+//  Basically the Scala compiler cannot guarantee covariance, but it can be guaranteed by setting a lower bound
+//  A is a lower bound for B. i.e. B is a supertype of A
+  def append[B >: A](b: => B): SimpleStream[B] =
+    foldRight(SimpleStream(b))((b, bs) => SimpleStream.cons(b, bs))
+
   //  was repeating this in every implementation
   private def emptyOrCons[B](onEmpty: => B, onCons: (() => A, () => SimpleStream[A]) => B) = this match {
     case Empty => onEmpty
