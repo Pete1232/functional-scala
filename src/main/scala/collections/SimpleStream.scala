@@ -44,6 +44,22 @@ sealed trait SimpleStream[+A] {
       }
     )
 
+  def exists(p: A => Boolean): Boolean =
+    emptyOrCons(
+      false,
+//      t is lazy, so if p(h()) then t is never evaluated
+      (h, t) => p(h()) || t().exists(p)
+    )
+
+  def foldRight[B](z: => B)(f: (A, => B) => B): B =
+    emptyOrCons(
+      z,
+      (h, t) => f(h(), t().foldRight(z)(f))
+    )
+
+  def forAll(p: A => Boolean): Boolean =
+    foldRight(true)((x, y) => p(x) && y)
+
   //  was repeating this in every implementation
   private def emptyOrCons[B](onEmpty: => B, onCons: (() => A, () => SimpleStream[A]) => B) = this match {
     case Empty => onEmpty

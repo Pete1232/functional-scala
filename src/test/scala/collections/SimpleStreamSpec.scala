@@ -67,4 +67,23 @@ class SimpleStreamSpec extends FlatSpec with MustMatchers {
     SimpleStream(5, 6, 7).takeWhile(_ != 7).toList mustBe List(5, 6)
     SimpleStream(5, 6, 7).takeWhile(_ => false) mustBe Empty
   }
+
+  "SimpleStream#exists" must "return true if any value of the stream satisfies the predicate" in {
+    SimpleStream(5, 6, 7).exists(_ == 7) mustBe true
+  }
+  it must "return false otherwise" in {
+    SimpleStream(5, 6, 7).exists(_ == 8) mustBe false
+    Empty.exists(_ == 7) mustBe false
+  }
+
+  "SimpleStream#foldRight" must "fold the stream according to the given function" in {
+    SimpleStream(5, 6, 7).foldRight(1)((x, y) => x + y) mustBe 19
+  }
+
+  "SimpleStream#forAll" must "return true if all elements of a stream match a predicate" in {
+    SimpleStream(5, 10, 15).forAll(_ % 5 == 0) mustBe true
+  }
+  it must "return false otherwise" in {
+    SimpleStream(5, 6, 15).forAll(_ % 5 == 0) mustBe false
+  }
 }
