@@ -36,12 +36,12 @@ sealed trait SimpleStream[+A] {
     )
 
   def takeWhile(p: A => Boolean): SimpleStream[A] =
-    foldRight(Empty: SimpleStream[A])((h, stream) => if(p(h)) SimpleStream.cons(h, stream) else Empty)
+    foldRight(Empty: SimpleStream[A])((h, stream) => if (p(h)) SimpleStream.cons(h, stream) else Empty)
 
   def exists(p: A => Boolean): Boolean =
     emptyOrCons(
       false,
-//      t is lazy, so if p(h()) then t is never evaluated
+      //      t is lazy, so if p(h()) then t is never evaluated
       (h, t) => p(h()) || t().exists(p)
     )
 
@@ -57,13 +57,19 @@ sealed trait SimpleStream[+A] {
   def map[B](m: A => B): SimpleStream[B] =
     foldRight(Empty: SimpleStream[B])((a, b) => SimpleStream.cons(m(a), b))
 
-//  http://docs.scala-lang.org/tutorials/tour/variances.html
-//  Also see Programming in Scala (3rd ed) 19.4 and 19.5
-//  Method parameters flip the positions classification; in this case from + to -
-//  Basically the Scala compiler cannot guarantee covariance, but it can be guaranteed by setting a lower bound
-//  A is a lower bound for B. i.e. B is a supertype of A
+  //  http://docs.scala-lang.org/tutorials/tour/variances.html
+  //  Also see Programming in Scala (3rd ed) 19.4 and 19.5
+  //  Method parameters flip the positions classification; in this case from + to -
+  //  Basically the Scala compiler cannot guarantee covariance, but it can be guaranteed by setting a lower bound
+  //  e.g. appending a more specific type than expected, like Apple instead of Fruit, would fail to compile
+  //  A is a lower bound for B. i.e. B is a supertype of A
   def append[B >: A](b: => B): SimpleStream[B] =
     foldRight(SimpleStream(b))((b, bs) => SimpleStream.cons(b, bs))
+
+  def flatMap[B](f: A => SimpleStream[B]): SimpleStream[B] =
+    foldRight(Empty: SimpleStream[B]) { (a, bs) =>
+      f(a).foldRight(bs)((a, bs) => SimpleStream.cons(a, bs))
+    }
 
   //  was repeating this in every implementation
   private def emptyOrCons[B](onEmpty: => B, onCons: (() => A, () => SimpleStream[A]) => B) = this match {

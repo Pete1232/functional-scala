@@ -94,4 +94,8 @@ class SimpleStreamSpec extends FlatSpec with MustMatchers {
   "SimpleStream#append" must "append the given element to the end of the stream" in {
     SimpleStream(5, 6).append(7).toList mustBe List(5, 6, 7)
   }
+
+  "SimpleStream#flatMap" must "map each element to a stream, and append to the result stream" in {
+    SimpleStream(5, 6, 7, 8, 9).flatMap(a => SimpleStream(a, a)).toList mustBe List(5, 5, 6, 6, 7, 7, 8, 8, 9, 9)
+  }
 }
