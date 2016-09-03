@@ -103,4 +103,10 @@ object SimpleStream {
   def apply[A](as: A*): SimpleStream[A] =
   //  helper method for building a SimpleStream
     if (as.isEmpty) empty else cons(as.head, apply(as.tail: _*))
+
+  def constant[A](a: A): SimpleStream[A] = cons(a, constant(a))
+
+  def from(n: Int): SimpleStream[Int] = cons(n, from(n + 1))
+
+  def fib(a: Int = 1, b: Int = 0): SimpleStream[Int] = cons(a + b, fib(b, a + b))
 }

@@ -98,4 +98,21 @@ class SimpleStreamSpec extends FlatSpec with MustMatchers {
   "SimpleStream#flatMap" must "map each element to a stream, and append to the result stream" in {
     SimpleStream(5, 6, 7, 8, 9).flatMap(a => SimpleStream(a, a)).toList mustBe List(5, 5, 6, 6, 7, 7, 8, 8, 9, 9)
   }
+
+  "SimpleStream#constant" must "return an infinite stream of constants" in {
+    SimpleStream.constant(5).take(5).toList mustBe SimpleStream(5, 5, 5, 5, 5).toList
+    SimpleStream.constant(5).take(10).toList mustBe SimpleStream(5, 5, 5, 5, 5, 5, 5, 5, 5, 5).toList
+    SimpleStream.constant("Hello").take(3).toList mustBe SimpleStream("Hello", "Hello", "Hello").toList
+  }
+
+  "SimpleStream#from" must "return an infinite stream on ints starting at n" in {
+    SimpleStream.from(5).take(5).toList mustBe SimpleStream(5, 6, 7, 8, 9).toList
+    SimpleStream.from(51673).take(5).toList mustBe SimpleStream(51673, 51674, 51675, 51676, 51677).toList
+    SimpleStream.from(2147483647).take(5).toList mustBe SimpleStream(2147483647, -2147483648, -2147483647, -2147483646, -2147483645).toList
+  }
+
+  "SimpleStream#fib" must "return an infinite stream of Fibonnaci numbers" in {
+    SimpleStream.fib().take(5).toList mustBe SimpleStream(1, 1, 2, 3, 5).toList
+    SimpleStream.fib().drop(24).take(1).toList mustBe List(75025)
+  }
 }
