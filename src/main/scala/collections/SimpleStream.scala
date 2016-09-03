@@ -1,6 +1,7 @@
 package collections
 
 import SimpleStream._
+
 // Stream == Lazy List
 sealed trait SimpleStream[+A] {
   //  program at the interface
@@ -14,7 +15,7 @@ sealed trait SimpleStream[+A] {
   def tail: SimpleStream[A] = emptyOrCons(
     Empty,
     (h, t) => {
-      t().headOption.map{ hd =>
+      t().headOption.map { hd =>
         cons(hd, t().tail)
       }.getOrElse(Empty)
     }
@@ -116,9 +117,13 @@ object SimpleStream {
     unfold(true)(s => Some(a, true))
 
   def from(n: Int): SimpleStream[Int] =
-    unfold(n)(s => Some(s , s + 1))
+    unfold(n)(s => Some(s, s + 1))
 
-  def fib(a: Int = 1, b: Int = 0): SimpleStream[Int] = cons(a + b, fib(b, a + b))
+  def fib(): SimpleStream[Int] =
+    unfold((1, 0))(s => {
+      val (a, b) = (s._1, s._2)
+      Some(a + b, (b, a + b))
+    })
 
   def unfold[A, S](z: S)(f: S => Option[(A, S)]): SimpleStream[A] = {
     f(z).map { as => {
