@@ -109,4 +109,12 @@ object SimpleStream {
   def from(n: Int): SimpleStream[Int] = cons(n, from(n + 1))
 
   def fib(a: Int = 1, b: Int = 0): SimpleStream[Int] = cons(a + b, fib(b, a + b))
+
+  def unfold[A, S](z: S)(f: S => Option[(A, S)]): SimpleStream[A] = {
+    f(z).map { as => {
+      val (a, s) = (as._1, as._2)
+      cons(a, cons(a, unfold(s)(f)))
+    }
+    }.getOrElse(Empty)
+  }
 }

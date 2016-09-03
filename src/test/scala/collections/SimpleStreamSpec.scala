@@ -115,4 +115,9 @@ class SimpleStreamSpec extends FlatSpec with MustMatchers {
     SimpleStream.fib().take(5).toList mustBe SimpleStream(1, 1, 2, 3, 5).toList
     SimpleStream.fib().drop(24).take(1).toList mustBe List(75025)
   }
+
+  "SimpleStream#unfold" must "build a generic infinite stream" in {
+    SimpleStream.unfold(5)(s => None).toList mustBe List()
+    SimpleStream.unfold(5)(s => Some(5, 5)).take(5).toList mustBe List(5, 5, 5, 5, 5)
+  }
 }
