@@ -29,7 +29,7 @@ sealed trait SimpleStream[+A] {
   def take(n: Int): SimpleStream[A] =
     emptyOrCons(
       Empty,
-      (h, t) => if (n > 0) Cons(h, () => t().take(n - 1)) else Empty
+      (h, t) => if (n > 0) cons(h(), t().take(n - 1)) else Empty
     )
 
   def drop(n: Int): SimpleStream[A] =
@@ -38,7 +38,7 @@ sealed trait SimpleStream[+A] {
       (h, t) => {
         if (n > 0) t().headOption match {
           case None => Empty
-          case Some(hd) => Cons(() => hd, () => t().tail).drop(n - 1)
+          case Some(hd) => cons(hd, t().tail).drop(n - 1)
         } else this
       }
     )

@@ -61,7 +61,7 @@ class SimpleStreamSpec extends FlatSpec with MustMatchers {
     SimpleStream(5, 6, 7).drop(2).toList mustBe List(7)
     SimpleStream(5, 6, 7).drop(3) mustBe Empty
     SimpleStream(5, 6, 7).drop(0).toList mustBe List(5, 6, 7)
-    SimpleStream(List.fill(500)(5): _*).drop(450).toList mustBe List.fill(50)(5)
+    SimpleStream(List.fill(500)(5): _*).drop(50).toList mustBe List.fill(450)(5)
   }
 
   "SimpleStream#takeWhile" must "take all values until a predicate is not satisfied" in {
@@ -119,6 +119,6 @@ class SimpleStreamSpec extends FlatSpec with MustMatchers {
 
   "SimpleStream#unfold" must "build a generic infinite stream" in {
     SimpleStream.unfold(5)(s => None).toList mustBe List()
-    SimpleStream.unfold(5)(s => Some(5, 5)).take(5).toList mustBe List(5, 5, 5, 5, 5)
+    SimpleStream.unfold(5)(s => Some(5, 5)).drop(50).take(5).toList mustBe List(5, 5, 5, 5, 5)
   }
 }
