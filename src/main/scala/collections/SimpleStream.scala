@@ -112,16 +112,18 @@ object SimpleStream {
   //  helper method for building a SimpleStream
     if (as.isEmpty) empty else cons(as.head, apply(as.tail: _*))
 
-  def constant[A](a: A): SimpleStream[A] = cons(a, constant(a))
+  def constant[A](a: A): SimpleStream[A] =
+    unfold(true)(s => Some(a, true))
 
-  def from(n: Int): SimpleStream[Int] = cons(n, from(n + 1))
+  def from(n: Int): SimpleStream[Int] =
+    unfold(n)(s => Some(s , s + 1))
 
   def fib(a: Int = 1, b: Int = 0): SimpleStream[Int] = cons(a + b, fib(b, a + b))
 
   def unfold[A, S](z: S)(f: S => Option[(A, S)]): SimpleStream[A] = {
     f(z).map { as => {
       val (a, s) = (as._1, as._2)
-      cons(a, cons(a, unfold(s)(f)))
+      cons(a, unfold(s)(f))
     }
     }.getOrElse(Empty)
   }
