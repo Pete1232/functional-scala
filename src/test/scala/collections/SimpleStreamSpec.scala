@@ -61,6 +61,7 @@ class SimpleStreamSpec extends FlatSpec with MustMatchers {
     SimpleStream(5, 6, 7).drop(2).toList mustBe List(7)
     SimpleStream(5, 6, 7).drop(3) mustBe Empty
     SimpleStream(5, 6, 7).drop(0).toList mustBe List(5, 6, 7)
+    SimpleStream(List.fill(500)(5): _*).drop(450).toList mustBe List.fill(50)(5)
   }
 
   "SimpleStream#takeWhile" must "take all values until a predicate is not satisfied" in {

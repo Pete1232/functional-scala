@@ -1,5 +1,6 @@
 package collections
 
+import SimpleStream._
 // Stream == Lazy List
 sealed trait SimpleStream[+A] {
   //  program at the interface
@@ -10,7 +11,14 @@ sealed trait SimpleStream[+A] {
       (h, t) => Some(h())
     )
 
-  def tail: SimpleStream[A] = drop(1)
+  def tail: SimpleStream[A] = emptyOrCons(
+    Empty,
+    (h, t) => {
+      t().headOption.map{ hd =>
+        cons(hd, t().tail)
+      }.getOrElse(Empty)
+    }
+  )
 
   def toList: List[A] =
     emptyOrCons(
