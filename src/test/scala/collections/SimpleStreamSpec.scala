@@ -122,4 +122,15 @@ class SimpleStreamSpec extends FlatSpec with MustMatchers {
     SimpleStream.unfold(5)(s => None).toList mustBe List()
     SimpleStream.unfold(5)(s => Some(5, 5)).drop(50).take(5).toList mustBe List(5, 5, 5, 5, 5)
   }
+
+  "SimpleStream#zipWith" must "add the corresponding elements in two streams" in {
+    SimpleStream(5, 6, 7).zipWith(SimpleStream(7, 6, 5))((a, b) => a + b).toList mustBe List(12, 12, 12)
+    SimpleStream(5, 6, 7, 8).zipWith(SimpleStream(7, 6, 5))((a, b) => a + b).toList mustBe List(12, 12, 12)
+    SimpleStream(5, 6, 7).zipWith(SimpleStream(7, 6, 5, 4))((a, b) => a + b).toList mustBe List(12, 12, 12)
+  }
+  "SimpleStream#zipWith" must "add the corresponding elements in two streams until both streams are empty" in {
+    SimpleStream(5, 6, 7).zipAll(SimpleStream(7, 6, 5))((a, b) => a + b).toList mustBe List(12, 12, 12)
+    SimpleStream(5, 6, 7, 8).zipAll(SimpleStream(7, 6, 5))((a, b) => a + b).toList mustBe List(12, 12, 12, 8)
+    SimpleStream(5, 6, 7).zipAll(SimpleStream(7, 6, 5, 4))((a, b) => a + b).toList mustBe List(12, 12, 12, 4)
+  }
 }

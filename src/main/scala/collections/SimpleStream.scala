@@ -87,6 +87,26 @@ sealed trait SimpleStream[+A] {
       f(a).foldRight(bs)((a, bs) => cons(a, bs))
     }
 
+  def zipWith[B >: A](that: SimpleStream[B])(binOp: (A, B) => B): SimpleStream[B] =
+    unfold(this, that)(s => {
+      val (left, right) = (s._1, s._2)
+      (left.headOption, right.headOption) match {
+        case (Some(lhd), Some(rhd)) => Some(binOp(lhd, rhd), (left.tail, right.tail))
+        case _ => None
+      }
+    })
+
+  def zipAll[B >: A](that: SimpleStream[B])(binOp: (A, B) => B): SimpleStream[B] =
+    unfold(this, that)(s => {
+      val (left, right) = (s._1, s._2)
+      (left.headOption, right.headOption) match {
+        case (Some(lhd), Some(rhd)) => Some(binOp(lhd, rhd), (left.tail, right.tail))
+        case (Some(lhd), None) => Some(lhd, (left.tail, Empty))
+        case (None, Some(rhd)) => Some(rhd, (Empty, right.tail))
+        case _ => None
+      }
+    })
+
   //  was repeating this in every implementation
   private def emptyOrCons[B](onEmpty: => B, onCons: (() => A, () => SimpleStream[A]) => B) = this match {
     case Empty => onEmpty
