@@ -54,6 +54,7 @@ class SimpleStreamSpec extends FlatSpec with MustMatchers {
     SimpleStream(5, 6, 7).take(2).toList mustBe List(5, 6)
     SimpleStream(5, 6, 7).take(3).toList mustBe List(5, 6, 7)
     SimpleStream(5, 6, 7).take(0) mustBe Empty
+    SimpleStream(5, 6, 7).take(4).toList mustBe List(5, 6, 7)
   }
 
   "SimpleStream#drop" must "drop the first n elements of a SimpleStream" in {

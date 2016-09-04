@@ -28,10 +28,13 @@ sealed trait SimpleStream[+A] {
     )
 
   def take(n: Int): SimpleStream[A] =
-    emptyOrCons(
-      Empty,
-      (h, t) => if (n > 0) cons(h(), t().take(n - 1)) else Empty
-    )
+    unfold(n, this)(s => {
+      s._2.headOption.map { hd =>
+        if (s._1 > 0) {
+          Some(hd, (s._1 - 1, s._2.tail))
+        } else None
+      }.getOrElse(None)
+    })
 
   def drop(n: Int): SimpleStream[A] =
     emptyOrCons(
@@ -65,7 +68,7 @@ sealed trait SimpleStream[+A] {
 
   def map[B](m: A => B): SimpleStream[B] =
     unfold(this)(s => {
-      s.headOption.map {hd =>
+      s.headOption.map { hd =>
         Some(m(hd), s.tail)
       }.getOrElse(None)
     })
