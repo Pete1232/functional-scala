@@ -45,7 +45,7 @@ sealed trait SimpleStream[+A] {
     )
 
   def takeWhile(p: A => Boolean): SimpleStream[A] =
-    foldRight(Empty: SimpleStream[A])((h, stream) => if (p(h)) SimpleStream.cons(h, stream) else Empty)
+    foldRight(Empty: SimpleStream[A])((h, stream) => if (p(h)) cons(h, stream) else Empty)
 
   def exists(p: A => Boolean): Boolean =
     emptyOrCons(
@@ -64,7 +64,7 @@ sealed trait SimpleStream[+A] {
     foldRight(true)((x, y) => p(x) && y)
 
   def map[B](m: A => B): SimpleStream[B] =
-    foldRight(Empty: SimpleStream[B])((a, b) => SimpleStream.cons(m(a), b))
+    foldRight(Empty: SimpleStream[B])((a, b) => cons(m(a), b))
 
   //  http://docs.scala-lang.org/tutorials/tour/variances.html
   //  Also see Programming in Scala (3rd ed) 19.4 and 19.5
@@ -73,11 +73,11 @@ sealed trait SimpleStream[+A] {
   //  e.g. appending a more specific type than expected, like Apple instead of Fruit, would fail to compile
   //  A is a lower bound for B. i.e. B is a supertype of A
   def append[B >: A](b: => B): SimpleStream[B] =
-    foldRight(SimpleStream(b))((b, bs) => SimpleStream.cons(b, bs))
+    foldRight(SimpleStream(b))((b, bs) => cons(b, bs))
 
   def flatMap[B](f: A => SimpleStream[B]): SimpleStream[B] =
     foldRight(Empty: SimpleStream[B]) { (a, bs) =>
-      f(a).foldRight(bs)((a, bs) => SimpleStream.cons(a, bs))
+      f(a).foldRight(bs)((a, bs) => cons(a, bs))
     }
 
   //  was repeating this in every implementation
@@ -125,11 +125,9 @@ object SimpleStream {
       Some(a + b, (b, a + b))
     })
 
-  def unfold[A, S](z: S)(f: S => Option[(A, S)]): SimpleStream[A] = {
-    f(z).map { as => {
-      val (a, s) = (as._1, as._2)
-      cons(a, unfold(s)(f))
+  def unfold[A, S](z: S)(f: S => Option[(A, S)]): SimpleStream[A] =
+    f(z) match {
+      case Some((a, s)) => cons(a, unfold(s)(f))
+      case None => Empty
     }
-    }.getOrElse(Empty)
-  }
 }
