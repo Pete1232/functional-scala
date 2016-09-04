@@ -64,7 +64,11 @@ sealed trait SimpleStream[+A] {
     foldRight(true)((x, y) => p(x) && y)
 
   def map[B](m: A => B): SimpleStream[B] =
-    foldRight(Empty: SimpleStream[B])((a, b) => cons(m(a), b))
+    unfold(this)(s => {
+      s.headOption.map {hd =>
+        Some(m(hd), s.tail)
+      }.getOrElse(None)
+    })
 
   //  http://docs.scala-lang.org/tutorials/tour/variances.html
   //  Also see Programming in Scala (3rd ed) 19.4 and 19.5
