@@ -36,6 +36,9 @@ object RNG {
   }
   def unit[A](a: A): Rand[A] = rng => (a, rng)
 
+  def both[A,B](ra: Rand[A], rb: Rand[B]): Rand[(A,B)] =
+    map2(ra, rb)((_, _))
+
   case class SimpleRNG(seed: Long) extends RNG {
     override def nextInt: (Int, RNG) = {
       //    seed values as in java.util.Random - chosen to satisfy some randomness tests
@@ -51,18 +54,18 @@ object RNG {
   //      (wasn't sure about how to keep this random - and this isn't perfect)
   //      iterate negative by 1 and change the sign
   def nonNegativeInt: Rand[Int] =
-    _.map(_.nextInt){ i =>
+    map(_.nextInt){ i =>
       if(i < 0) -(i + 1) else i
     }
 
   def double: Rand[Double] =
-    _.map(_.nextInt)(_.toDouble/Int.MaxValue)
+    map(_.nextInt)(_.toDouble/Int.MaxValue)
 
   def intDouble: Rand[(Int, Double)] =
-    _.map2(_.nextInt, double(_))((_, _))
+    both(_.nextInt, double(_))
 
   def doubleInt: Rand[(Double, Int)] =
-    _.map2(double(_), _.nextInt)((_, _))
+    both(double(_), _.nextInt)
 
   def double3(rng: RNG): ((Double, Double, Double), RNG) = {
     val first = double(rng)

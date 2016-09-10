@@ -27,6 +27,8 @@ class RNGSpec extends FlatSpec with MustMatchers {
     val rng = SimpleRNG(42)
     nonNegativeInt(nonNegativeInt(rng))
       .mustBe(1281479696, SimpleRNG(197491923327988L))
+//    rng.nonNegativeInt.nonNegativeInt
+//      .mustBe(1281479696, SimpleRNG(197491923327988L))
   }
   it must "return (16159453, SimpleRNG(1059025964525)) when evaluating (Int.MinValue, SimpleRNG(42))" in {
     nonNegativeInt(MockRNG) mustBe (Int.MaxValue, SimpleRNG(42))
