@@ -1,13 +1,21 @@
 package functional_state
 
+import functional_state.RNG.Rand
+
 trait RNG {
   def nextInt: (Int, RNG)
+
+  def map[A,B](s: Rand[A])(f: A => B): (B, RNG) =
+    RNG.map(s)(f)(this)
 }
 
 object RNG {
   //  such functions are called a state action or state transition
   //  state (rng) is transitioned by the method (as well as returning a result here)
   type Rand[+A] = RNG => (A, RNG)
+
+  implicit def randToResult[A](rand: (A, RNG)): A = rand._1
+  implicit def randToRNG[A](rand: (A, RNG)): RNG = rand._2
 
   def map[A,B](s: Rand[A])(f: A => B): Rand[B] = {
     rng => {
