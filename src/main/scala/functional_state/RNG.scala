@@ -37,15 +37,16 @@ object RNG {
     }
   }
 
-  def nonNegativeInt(rng: RNG): (Int, RNG) = {
-    val random = rng.nextInt
-    if(random._1 == Int.MinValue) random._2.nextInt else random.copy(_1 = math.abs(random._1))
-  }
+  //      impl from fpinscala github page
+  //      (wasn't sure about how to keep this random - and this isn't perfect)
+  //      iterate negative by 1 and change the sign
+  def nonNegativeInt(rng: RNG): (Int, RNG) =
+    rng.map(_.nextInt){ i =>
+      if(i < 0) -(i + 1) else i
+    }
 
-  def double(rng: RNG): (Double, RNG) = {
-    val random = rng.nextInt
-    (random._1.toDouble/Int.MaxValue, random._2)
-  }
+  def double(rng: RNG): (Double, RNG) =
+    rng.map(_.nextInt)(_.toDouble/Int.MaxValue)
 
   def intDouble(rng: RNG): ((Int, Double), RNG) = {
     val first = rng.nextInt

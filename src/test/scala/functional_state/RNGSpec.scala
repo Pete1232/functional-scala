@@ -2,12 +2,13 @@ package functional_state
 
 import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{FlatSpec, MustMatchers}
-import org.mockito.Mockito._
 import RNG._
 
 class RNGSpec extends FlatSpec with MustMatchers with MockitoSugar {
-  val mockSimpleRNG = mock[SimpleRNG]
-  when(mockSimpleRNG.nextInt).thenReturn((Int.MinValue, SimpleRNG(42)))
+
+  object MockRNG extends SimpleRNG(42) {
+    override def nextInt: (Int, RNG) = (Int.MinValue, SimpleRNG(42))
+  }
 
   "SimpleRNG#nextInt" must "return (16159453, SimpleRNG(1059025964525)) when seeded with 42" in {
     val simpleRNG = SimpleRNG(42)
@@ -23,15 +24,13 @@ class RNGSpec extends FlatSpec with MustMatchers with MockitoSugar {
     val rng = SimpleRNG(42)
     nonNegativeInt(rng) mustBe(16159453, SimpleRNG(1059025964525L))
   }
-  it must "return (1281479697, SimpleRNG(197491923327988)) when seeded with 42 and called twice" in {
+  it must "return (1281479696, SimpleRNG(197491923327988)) when seeded with 42 and called twice" in {
     val rng = SimpleRNG(42)
     nonNegativeInt(nonNegativeInt(rng)._2)
-      .mustBe(1281479697, SimpleRNG(197491923327988L))
+      .mustBe(1281479696, SimpleRNG(197491923327988L))
   }
   it must "return (16159453, SimpleRNG(1059025964525)) when evaluating (Int.MinValue, SimpleRNG(42))" in {
-    nonNegativeInt(mockSimpleRNG) mustBe(16159453, SimpleRNG(1059025964525L))
-    nonNegativeInt(mockSimpleRNG) mustBe(16159453, SimpleRNG(1059025964525L))
-    nonNegativeInt(mockSimpleRNG) mustBe(16159453, SimpleRNG(1059025964525L))
+    nonNegativeInt(MockRNG) mustBe (Int.MaxValue, SimpleRNG(42))
   }
 
   "RNG#double" must "return the passed value divided by Int.MaxValue" in {
