@@ -1,10 +1,9 @@
 package functional_state
 
-import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{FlatSpec, MustMatchers}
 import RNG._
 
-class RNGSpec extends FlatSpec with MustMatchers with MockitoSugar {
+class RNGSpec extends FlatSpec with MustMatchers {
 
   object MockRNG extends SimpleRNG(42) {
     override def nextInt: (Int, RNG) = (Int.MinValue, SimpleRNG(42))
