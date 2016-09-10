@@ -72,4 +72,18 @@ class RNGSpec extends FlatSpec with MustMatchers with MockitoSugar {
     val rng = SimpleRNG(42)
     rng.ints(3)(rng)._2 mustBe SimpleRNG(259172689157871L)
   }
+
+  "SimpleRNG#unit" must "return a constant value with the rng unchanged" in {
+    val rng = SimpleRNG(42)
+    rng.unit(5)(rng) mustBe (5, rng)
+  }
+
+  "SimpleRNG#map" must "transition the state according to the given transistion" in {
+    val rng = SimpleRNG(42)
+    rng.map[Int, Int](_.nextInt)(a => a)(rng) mustBe (16159453, SimpleRNG(1059025964525L))
+  }
+  it must "apply the given map to the random value returned" in {
+    val rng = SimpleRNG(42)
+    rng.map(_.nextInt)(a => 2*a)(rng) mustBe (32318906, SimpleRNG(1059025964525L))
+  }
 }
