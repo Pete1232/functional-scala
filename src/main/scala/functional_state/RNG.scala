@@ -1,11 +1,13 @@
 package functional_state
 
 trait RNG {
-//  such functions are called a state action or state transition
-//  state (rng) is transitioned by the method (as well as returning a result here)
-  type Rand[+A] = RNG => (A, RNG)
+  def nextInt: (Int, RNG)
+}
 
-  val int: Rand[Int] = _.nextInt
+object RNG {
+  //  such functions are called a state action or state transition
+  //  state (rng) is transitioned by the method (as well as returning a result here)
+  type Rand[+A] = RNG => (A, RNG)
 
   def map[A,B](s: Rand[A])(f: A => B): Rand[B] = {
     rng => {
@@ -16,9 +18,18 @@ trait RNG {
 
   def unit[A](a: A): Rand[A] = rng => (a, rng)
 
-  def nextInt: (Int, RNG)
+  case class SimpleRNG(seed: Long) extends RNG {
+    override def nextInt: (Int, RNG) = {
+      //    seed values as in java.util.Random - chosen to satisfy some randomness tests
+      //    https://www.math.utah.edu/~beebe/java/random/README is quite interesting
+      val newSeed = (seed * 0x5DEECE66DL + 0xBL) & 0xFFFFFFFFFFFFL
+      val nextRNG = SimpleRNG(newSeed)
+      val n = (newSeed >>> 16).toInt
+      (n, nextRNG)
+    }
+  }
 
-  def nonNegativeInt(rng: RNG = this): (Int, RNG) = {
+  def nonNegativeInt(rng: RNG): (Int, RNG) = {
     val random = rng.nextInt
     if(random._1 == Int.MinValue) random._2.nextInt else random.copy(_1 = math.abs(random._1))
   }
@@ -55,16 +66,5 @@ trait RNG {
       }
     }
     listBuilder(count)(rng)
-  }
-}
-
-case class SimpleRNG(seed: Long) extends RNG {
-  override def nextInt: (Int, RNG) = {
-    //    seed values as in java.util.Random - chosen to satisfy some randomness tests
-    //    https://www.math.utah.edu/~beebe/java/random/README is quite interesting
-    val newSeed = (seed * 0x5DEECE66DL + 0xBL) & 0xFFFFFFFFFFFFL
-    val nextRNG = SimpleRNG(newSeed)
-    val n = (newSeed >>> 16).toInt
-    (n, nextRNG)
   }
 }
