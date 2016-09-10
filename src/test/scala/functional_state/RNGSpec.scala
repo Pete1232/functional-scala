@@ -25,7 +25,7 @@ class RNGSpec extends FlatSpec with MustMatchers {
   }
   it must "return (1281479696, SimpleRNG(197491923327988)) when seeded with 42 and called twice" in {
     val rng = SimpleRNG(42)
-    nonNegativeInt(nonNegativeInt(rng)._2)
+    nonNegativeInt(nonNegativeInt(rng))
       .mustBe(1281479696, SimpleRNG(197491923327988L))
   }
   it must "return (16159453, SimpleRNG(1059025964525)) when evaluating (Int.MinValue, SimpleRNG(42))" in {

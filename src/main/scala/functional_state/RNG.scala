@@ -34,7 +34,6 @@ object RNG {
       (f(a, b), rng3)
     }
   }
-
   def unit[A](a: A): Rand[A] = rng => (a, rng)
 
   case class SimpleRNG(seed: Long) extends RNG {
@@ -51,19 +50,19 @@ object RNG {
   //      impl from fpinscala github page
   //      (wasn't sure about how to keep this random - and this isn't perfect)
   //      iterate negative by 1 and change the sign
-  def nonNegativeInt(rng: RNG): (Int, RNG) =
-    rng.map(_.nextInt){ i =>
+  def nonNegativeInt: Rand[Int] =
+    _.map(_.nextInt){ i =>
       if(i < 0) -(i + 1) else i
     }
 
-  def double(rng: RNG): (Double, RNG) =
-    rng.map(_.nextInt)(_.toDouble/Int.MaxValue)
+  def double: Rand[Double] =
+    _.map(_.nextInt)(_.toDouble/Int.MaxValue)
 
-  def intDouble(rng: RNG): ((Int, Double), RNG) =
-    rng.map2(_.nextInt, double(_))((a, b) => (a, b))
+  def intDouble: Rand[(Int, Double)] =
+    _.map2(_.nextInt, double(_))((_, _))
 
-  def doubleInt(rng: RNG): ((Double, Int), RNG) =
-    rng.map2(double(_), _.nextInt)((a, b) => (a, b))
+  def doubleInt: Rand[(Double, Int)] =
+    _.map2(double(_), _.nextInt)((_, _))
 
   def double3(rng: RNG): ((Double, Double, Double), RNG) = {
     val first = double(rng)
