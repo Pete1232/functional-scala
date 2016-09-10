@@ -7,6 +7,9 @@ trait RNG {
 
   def map[A,B](s: Rand[A])(f: A => B): (B, RNG) =
     RNG.map(s)(f)(this)
+
+  def map2[A,B,C](ra: Rand[A], rb: Rand[B])(f: (A, B) => C): (C, RNG) =
+    RNG.map2(ra, rb)(f)(this)
 }
 
 object RNG {
@@ -21,6 +24,14 @@ object RNG {
     rng => {
       val (a, rng2) = s(rng)
       (f(a), rng2)
+    }
+  }
+
+  def map2[A,B,C](ra: Rand[A], rb: Rand[B])(f: (A, B) => C): Rand[C] = {
+    rng => {
+      val (a, rng2) = ra(rng)
+      val (b, rng3) = rb(rng2)
+      (f(a, b), rng3)
     }
   }
 
@@ -48,14 +59,11 @@ object RNG {
   def double(rng: RNG): (Double, RNG) =
     rng.map(_.nextInt)(_.toDouble/Int.MaxValue)
 
-  def intDouble(rng: RNG): ((Int, Double), RNG) = {
-    val first = rng.nextInt
-    val second = double(first._2)
-    ((first._1, second._1), second._2)
-  }
+  def intDouble(rng: RNG): ((Int, Double), RNG) =
+    rng.map2(_.nextInt, double(_))((a, b) => (a, b))
 
   def doubleInt(rng: RNG): ((Double, Int), RNG) =
-    (intDouble(rng)._1.swap, intDouble(rng)._2)
+    rng.map2(double(_), _.nextInt)((a, b) => (a, b))
 
   def double3(rng: RNG): ((Double, Double, Double), RNG) = {
     val first = double(rng)

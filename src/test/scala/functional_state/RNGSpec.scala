@@ -48,7 +48,7 @@ class RNGSpec extends FlatSpec with MustMatchers {
 
   "RNG#doubleInt" must "return (-1281479697/Int.MaxValue, 16159453) when seeded with 42" in {
     val rng = SimpleRNG(42)
-    doubleInt(rng)._1 mustBe(-1281479697.toDouble / Int.MaxValue, 16159453)
+    doubleInt(rng)._1 mustBe(16159453.toDouble / Int.MaxValue, -1281479697)
   }
   it must "return state SimpleRNG(197491923327988L) when seeded with 42" in {
     val rng = SimpleRNG(42)
