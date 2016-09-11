@@ -25,16 +25,11 @@ object RNG {
   implicit def randToRNG[A](rand: (A, RNG)): RNG = rand._2
 
   def map[A, B](s: Rand[A])(f: A => B): Rand[B] =
-    rng => {
-      val (a, rng2) = s(rng)
-      (f(a), rng2)
-    }
+    flatMap(s)(a => unit(f(a)))
 
   def map2[A, B, C](ra: Rand[A], rb: Rand[B])(f: (A, B) => C): Rand[C] =
-    rng => {
-      val (a, rng2) = ra(rng)
-      val (b, rng3) = rb(rng2)
-      (f(a, b), rng3)
+    flatMap(ra){ a =>
+      map(rb)(b => f(a, b))
     }
 
   def flatMap[A,B](f: Rand[A])(g: A => Rand[B]): Rand[B] =
@@ -104,8 +99,8 @@ object RNG {
   def ints(count: Int): Rand[List[Int]] =
     sequence(List.fill(count)(_.nextInt))
 
-  def nonNegativeLessThan(n: Int): Rand[Int] = rng =>
-    rng.flatMap(nonNegativeInt){ i =>
+  def nonNegativeLessThan(n: Int): Rand[Int] =
+    flatMap(nonNegativeInt){ i =>
       val mod = i % n
       if (i + (n-1) - mod >= 0)
         // state had already been transitioned by nonNegativeInt
