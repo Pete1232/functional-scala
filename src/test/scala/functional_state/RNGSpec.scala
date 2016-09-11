@@ -102,4 +102,13 @@ class RNGSpec extends FlatSpec with MustMatchers {
     val rng = SimpleRNG(42)
     rng.map(_.nextInt)(a => a).nextInt mustBe (-1281479697, SimpleRNG(197491923327988L))
   }
+
+  "RNG#nonNegativeLessThan" must "return 3 when seeded with 42" in {
+    val rng = SimpleRNG(42)
+    nonNegativeLessThan(10)(rng)._1 mustBe 3
+  }
+  it must "return  when seeded with 21" in {
+    val rng = SimpleRNG(21)
+    nonNegativeLessThan(10)(rng)._1 mustBe 6
+  }
 }

@@ -1,8 +1,8 @@
 package functional_state
 
-import functional_state.RNG.Rand
-
 trait RNG {
+  import functional_state.RNG.Rand
+
   def nextInt: (Int, RNG)
 
   def map[A, B](s: Rand[A])(f: A => B): (B, RNG) =
@@ -10,6 +10,9 @@ trait RNG {
 
   def map2[A, B, C](ra: Rand[A], rb: Rand[B])(f: (A, B) => C): (C, RNG) =
     RNG.map2(ra, rb)(f)(this)
+
+  def flatMap[A,B](f: Rand[A])(g: A => Rand[B]): (B, RNG) =
+    RNG.flatMap(f)(g)(this)
 }
 
 object RNG {
@@ -32,6 +35,14 @@ object RNG {
       val (a, rng2) = ra(rng)
       val (b, rng3) = rb(rng2)
       (f(a, b), rng3)
+    }
+
+  def flatMap[A,B](f: Rand[A])(g: A => Rand[B]): Rand[B] =
+    rng => {
+//      generate a random a with f
+      val (a, rng2) = f(rng)
+//      take that a and choose a Rand[B] based on its value
+      g(a)(rng2)
     }
 
   def sequence[A](fs: List[Rand[A]]): Rand[List[A]] =
@@ -92,4 +103,13 @@ object RNG {
 
   def ints(count: Int): Rand[List[Int]] =
     sequence(List.fill(count)(_.nextInt))
+
+  def nonNegativeLessThan(n: Int): Rand[Int] = rng =>
+    rng.flatMap(nonNegativeInt){ i =>
+      val mod = i % n
+      if (i + (n-1) - mod >= 0)
+        // state had already been transitioned by nonNegativeInt
+        unit(mod)
+      else nonNegativeLessThan(n)
+    }
 }
