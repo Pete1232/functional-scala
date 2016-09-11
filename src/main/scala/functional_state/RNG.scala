@@ -35,6 +35,12 @@ object RNG {
     }
   }
 
+  def unit[A](a: A): Rand[A] =
+    State.unit(a)
+
+  def nextInt: Rand[Int] =
+    State[RNG, Int](_.nextInt)
+
   //      impl from fpinscala github page
   //      (wasn't sure about how to keep this random - and this isn't perfect)
   //      iterate negative by 1 and change the sign
@@ -48,22 +54,22 @@ object RNG {
 
   def intDouble: Rand[(Int, Double)] =
     State[RNG, Int](_.nextInt).flatMap{ i =>
-      State[RNG, Double](double.run).map{ j =>
+      State[RNG, Double](double.runWith).map{ j =>
         (i, j)
       }
     }
 
   def doubleInt: Rand[(Double, Int)] =
-    State[RNG, Double](double.run).flatMap{ i =>
+    State[RNG, Double](double.runWith).flatMap{ i =>
       State[RNG, Int](_.nextInt).map{ j =>
         (i, j)
       }
     }
 
   def double3: Rand[(Double, Double, Double)] =
-    State[RNG, Double](double.run).flatMap{ i =>
-      State[RNG, Double](double.run).flatMap{ j =>
-        State[RNG, Double](double.run).map{ k =>
+    State[RNG, Double](double.runWith).flatMap{ i =>
+      State[RNG, Double](double.runWith).flatMap{ j =>
+        State[RNG, Double](double.runWith).map{ k =>
           (i, j, k)
       }
     }
@@ -73,7 +79,7 @@ object RNG {
     sequence(List.fill(count)(State[RNG, Int](_.nextInt)))
 
   def nonNegativeLessThan(n: Int): Rand[Int] =
-    State[RNG, Int](nonNegativeInt.run).flatMap{ i =>
+    State[RNG, Int](nonNegativeInt.runWith).flatMap{ i =>
       val mod = i % n
       if (i + (n-1) - mod >= 0)
         // state had already been transitioned by nonNegativeInt
