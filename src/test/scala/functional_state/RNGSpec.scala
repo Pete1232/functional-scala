@@ -21,94 +21,94 @@ class RNGSpec extends FlatSpec with MustMatchers {
 
   "RNG#nonNegativeInt" must "return (16159453, SimpleRNG(1059025964525)) when seeded with 42" in {
     val rng = SimpleRNG(42)
-    nonNegativeInt(rng) mustBe(16159453, SimpleRNG(1059025964525L))
+    nonNegativeInt.run(rng) mustBe(16159453, SimpleRNG(1059025964525L))
   }
   it must "return (1281479696, SimpleRNG(197491923327988)) when seeded with 42 and called twice" in {
     val rng = SimpleRNG(42)
-    nonNegativeInt(nonNegativeInt(rng))
+    nonNegativeInt.run(nonNegativeInt.run(rng))
       .mustBe(1281479696, SimpleRNG(197491923327988L))
 //    rng.nonNegativeInt.nonNegativeInt
 //      .mustBe(1281479696, SimpleRNG(197491923327988L))
   }
   it must "return (16159453, SimpleRNG(1059025964525)) when evaluating (Int.MinValue, SimpleRNG(42))" in {
-    nonNegativeInt(MockRNG) mustBe (Int.MaxValue, SimpleRNG(42))
+    nonNegativeInt.run(MockRNG) mustBe (Int.MaxValue, SimpleRNG(42))
   }
 
   "RNG#double" must "return the passed value divided by Int.MaxValue" in {
     val rng = SimpleRNG(42)
-    double(rng)._1 mustBe 16159453.toDouble / Int.MaxValue
+    double.run(rng)._1 mustBe 16159453.toDouble / Int.MaxValue
   }
 
   "RNG#intDouble" must "return (16159453, -1281479697/Int.MaxValue) when seeded with 42" in {
     val rng = SimpleRNG(42)
-    intDouble(rng)._1 mustBe(16159453, -1281479697.toDouble / Int.MaxValue)
+    intDouble.run(rng)._1 mustBe(16159453, -1281479697.toDouble / Int.MaxValue)
   }
   it must "return state SimpleRNG(197491923327988L) when seeded with 42" in {
     val rng = SimpleRNG(42)
-    intDouble(rng)._2 mustBe SimpleRNG(197491923327988L)
+    intDouble.run(rng)._2 mustBe SimpleRNG(197491923327988L)
   }
 
   "RNG#doubleInt" must "return (-1281479697/Int.MaxValue, 16159453) when seeded with 42" in {
     val rng = SimpleRNG(42)
-    doubleInt(rng)._1 mustBe(16159453.toDouble / Int.MaxValue, -1281479697)
+    doubleInt.run(rng)._1 mustBe(16159453.toDouble / Int.MaxValue, -1281479697)
   }
   it must "return state SimpleRNG(197491923327988L) when seeded with 42" in {
     val rng = SimpleRNG(42)
-    doubleInt(rng)._2 mustBe SimpleRNG(197491923327988L)
+    doubleInt.run(rng)._2 mustBe SimpleRNG(197491923327988L)
   }
 
   "RNG#double3" must "return (16159453/Int.MaxValue, -1281479697/Int.MaxValue, -340305902/Int.MaxValue) when seeded with 42" in {
     val rng = SimpleRNG(42)
-    double3(rng)._1 mustBe(16159453.toDouble / Int.MaxValue, -1281479697.toDouble / Int.MaxValue, -340305902.toDouble / Int.MaxValue)
+    double3.run(rng)._1 mustBe(16159453.toDouble / Int.MaxValue, -1281479697.toDouble / Int.MaxValue, -340305902.toDouble / Int.MaxValue)
   }
   it must "return state SimpleRNG(259172689157871L) when seeded with 42" in {
     val rng = SimpleRNG(42)
-    double3(rng)._2 mustBe SimpleRNG(259172689157871L)
+    double3.run(rng)._2 mustBe SimpleRNG(259172689157871L)
   }
 
   "RNG#ints" must "return List(16159453, -1281479697, -340305902) when called with count=3 and seeded with 42" in {
     val rng = SimpleRNG(42)
-    ints(3)(rng)._1 mustBe List(16159453, -1281479697, -340305902)
+    ints(3).run(rng)._1 mustBe List(16159453, -1281479697, -340305902)
   }
   it must "return state SimpleRNG(259172689157871L) when called with count=3 and seeded with 42" in {
     val rng = SimpleRNG(42)
-    ints(3)(rng)._2 mustBe SimpleRNG(259172689157871L)
+    ints(3).run(rng)._2 mustBe SimpleRNG(259172689157871L)
   }
 
   "RNG#unit" must "return a constant value with the rng unchanged" in {
     val rng = SimpleRNG(42)
-    unit(5)(rng) mustBe(5, rng)
+    State.unit(5).run(rng) mustBe(5, rng)
   }
 
   "RNG#map" must "transition the state according to the given transistion" in {
     val rng = SimpleRNG(42)
-    map[Int, Int](_.nextInt)(a => a)(rng) mustBe(16159453, SimpleRNG(1059025964525L))
+    State[RNG, Int](_.nextInt).map(a => a).run(rng) mustBe(16159453, SimpleRNG(1059025964525L))
   }
   it must "apply the given map to the random value returned" in {
     val rng = SimpleRNG(42)
-    map(_.nextInt)(a => 2 * a)(rng) mustBe(32318906, SimpleRNG(1059025964525L))
+    State[RNG, Int](_.nextInt).map(a => 2 * a).run(rng) mustBe(32318906, SimpleRNG(1059025964525L))
   }
   it must "be possible to call map directly on an rng" in {
     val rng = SimpleRNG(42)
-    rng.map(_.nextInt)(a => 2 * a) mustBe(32318906, SimpleRNG(1059025964525L))
+    State[RNG, Int](_.nextInt).map(a => 2 * a).run(rng) mustBe(32318906, SimpleRNG(1059025964525L))
   }
 
   "RNG#randToResult" must "implicitly convert a (result, rng) to its result" in {
     val rng = SimpleRNG(42)
-    rng.map(_.nextInt)(a => a) + 1 mustBe 16159454
+    State[RNG, Int](_.nextInt).map(a => a).run(rng) + 1 mustBe 16159454
   }
 
   "RNG#randToRNG" must "implicitly convert a (result, rng) to its rng" in {
     val rng = SimpleRNG(42)
-    rng.map(_.nextInt)(a => a).nextInt mustBe (-1281479697, SimpleRNG(197491923327988L))
+    State[RNG, Int](_.nextInt).map(a => a).run(rng).nextInt mustBe (-1281479697, SimpleRNG(197491923327988L))
   }
 
   "RNG#nonNegativeLessThan" must "return 3 when seeded with 42" in {
     val rng = SimpleRNG(42)
-    nonNegativeLessThan(10)(rng)._1 mustBe 3
+    nonNegativeLessThan(10).run(rng)._1 mustBe 3
   }
   it must "return  when seeded with 21" in {
     val rng = SimpleRNG(21)
-    nonNegativeLessThan(10)(rng)._1 mustBe 6
+    nonNegativeLessThan(10).run(rng)._1 mustBe 6
   }
 }

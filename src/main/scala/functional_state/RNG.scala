@@ -1,65 +1,28 @@
 package functional_state
 
-trait RNG {
-  import functional_state.RNG.Rand
+import functional_state.State.Rand
 
+trait RNG{
   def nextInt: (Int, RNG)
-
-  def map[A, B](s: Rand[A])(f: A => B): (B, RNG) =
-    RNG.map(s)(f)(this)
-
-  def map2[A, B, C](ra: Rand[A], rb: Rand[B])(f: (A, B) => C): (C, RNG) =
-    RNG.map2(ra, rb)(f)(this)
-
-  def flatMap[A,B](f: Rand[A])(g: A => Rand[B]): (B, RNG) =
-    RNG.flatMap(f)(g)(this)
 }
 
 object RNG {
-  //  such functions are called a state action or state transition
-  //  state (rng) is transitioned by the method (as well as returning a result here)
-  type Rand[+A] = RNG => (A, RNG)
-
   implicit def randToResult[A](rand: (A, RNG)): A = rand._1
 
   implicit def randToRNG[A](rand: (A, RNG)): RNG = rand._2
 
-  def map[A, B](s: Rand[A])(f: A => B): Rand[B] =
-    flatMap(s)(a => unit(f(a)))
-
-  def map2[A, B, C](ra: Rand[A], rb: Rand[B])(f: (A, B) => C): Rand[C] =
-    flatMap(ra){ a =>
-      map(rb)(b => f(a, b))
-    }
-
-  def flatMap[A,B](f: Rand[A])(g: A => Rand[B]): Rand[B] =
-    rng => {
-//      generate a random a with f
-      val (a, rng2) = f(rng)
-//      take that a and choose a Rand[B] based on its value
-      g(a)(rng2)
-    }
+//  def map[S,A,B](s: State[S, A])(f: A => B): State[S, B]
+//  replacing the implementation here is fine as far as map is concerned
+//  however - it will break type inference for the client methods
+//  either:
+//       (bad) specify the type every time we call map
+//       (good) implement this in another interface and inherit
 
   def sequence[A](fs: List[Rand[A]]): Rand[List[A]] =
-    rng => {
-      val (list, r) =
-        fs.foldLeft(List[A](), rng) { (state, rand) =>
-          // these next three lines are very similar to map2; which hints that something isn't as good as it could be
-          // see comments after the function
-          // (didn't spot the repetition until I cross-checked against the solutions)
-          val (thisList, thisRng) = state
-          val (nextA, nextRng) = rand(thisRng)
-          (thisList :+ (nextA), nextRng)
-        }
-      (list, r)
-    }
-//  the neater fp in scala solution for reference
-//  fs.foldRight(unit(List[A]()))((f, acc) => map2(f, acc)(_ :: _))
-
-  def unit[A](a: A): Rand[A] = rng => (a, rng)
+    fs.foldRight(State.unit[RNG, List[A]](List[A]()))((f, acc) => f.map2(acc)(_ :: _))
 
   def both[A, B](ra: Rand[A], rb: Rand[B]): Rand[(A, B)] =
-    map2(ra, rb)((_, _))
+    ra.map2(rb)((_, _))
 
   case class SimpleRNG(seed: Long) extends RNG {
     override def nextInt: (Int, RNG) = {
@@ -76,35 +39,45 @@ object RNG {
   //      (wasn't sure about how to keep this random - and this isn't perfect)
   //      iterate negative by 1 and change the sign
   def nonNegativeInt: Rand[Int] =
-    map(_.nextInt) { i =>
+    State[RNG, Int](_.nextInt).map{ i =>
       if (i < 0) -(i + 1) else i
     }
 
   def double: Rand[Double] =
-    map(_.nextInt)(_.toDouble / Int.MaxValue)
+    State[RNG, Int](_.nextInt).map(_.toDouble / Int.MaxValue)
 
   def intDouble: Rand[(Int, Double)] =
-    both(_.nextInt, double(_))
+    State[RNG, Int](_.nextInt).flatMap{ i =>
+      State[RNG, Double](double.run).map{ j =>
+        (i, j)
+      }
+    }
 
   def doubleInt: Rand[(Double, Int)] =
-    both(double(_), _.nextInt)
+    State[RNG, Double](double.run).flatMap{ i =>
+      State[RNG, Int](_.nextInt).map{ j =>
+        (i, j)
+      }
+    }
 
-  def double3(rng: RNG): ((Double, Double, Double), RNG) = {
-    val first = double(rng)
-    val second = double(first._2)
-    val third = double(second._2)
-    ((first._1, second._1, third._1), third._2)
+  def double3: Rand[(Double, Double, Double)] =
+    State[RNG, Double](double.run).flatMap{ i =>
+      State[RNG, Double](double.run).flatMap{ j =>
+        State[RNG, Double](double.run).map{ k =>
+          (i, j, k)
+      }
+    }
   }
 
   def ints(count: Int): Rand[List[Int]] =
-    sequence(List.fill(count)(_.nextInt))
+    sequence(List.fill(count)(State[RNG, Int](_.nextInt)))
 
   def nonNegativeLessThan(n: Int): Rand[Int] =
-    flatMap(nonNegativeInt){ i =>
+    State[RNG, Int](nonNegativeInt.run).flatMap{ i =>
       val mod = i % n
       if (i + (n-1) - mod >= 0)
         // state had already been transitioned by nonNegativeInt
-        unit(mod)
+        State.unit(mod)
       else nonNegativeLessThan(n)
     }
 }
