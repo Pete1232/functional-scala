@@ -4,6 +4,8 @@ import java.util.concurrent.{Callable, ExecutorService, Future, TimeUnit}
 
 import parallelism.Par.Par
 
+import scala.language.implicitConversions
+
 object Parallelism {
 
   def sum(ints: IndexedSeq[Int]): Par[Int] =
@@ -28,7 +30,7 @@ object Par {
     def cancel(evenIfRunning: Boolean): Boolean = false
   }
 
-  private case class Map2Future[A, B, C](a: Future[A], b: Future[B], f: (A, B) => C) extends Future[C] {
+  private case class Map2Future[A,B,C](a: Future[A], b: Future[B], f: (A, B) => C) extends Future[C] {
     def isDone: Boolean = a.isDone || b.isDone
     def isCancelled: Boolean = a.isCancelled || b.isCancelled
     def cancel(evenIfRunning: Boolean): Boolean = a.cancel(evenIfRunning) && b.cancel(evenIfRunning)
@@ -72,7 +74,7 @@ object Par {
   // combine two Par
   // def map2[A](a1: Par[A], a2: Par[A])(op: (A, A) => A): Par[A] = ???
   // what if the two Par had different types? As long as we have an f that can compose them it doesn't matter!
-  def map2[A,B,C](a: Par[A], b: Par[B])(f: (A,B) => C): Par[C] = (es: ExecutorService) => {
+  def map2[A,B,C](a: Par[A], b: Par[B])(f: (A, B) => C): Par[C] = (es: ExecutorService) => {
     val af = a(es)
     val bf = b(es)
     Map2Future(af, bf, f)
@@ -85,5 +87,17 @@ object Par {
     es.submit(new Callable[A] {
       override def call(): A = a(es).get
     })
+  }
+
+  def asyncF[A,B](f: A => B): A => Par[B] =
+    a => lazyUnit(f(a))
+
+  // certainly not perfect - but the example in the solutions doesn't compile when used
+  // this also means the implicit conversion must be imported manually
+  // seems it would be better for Par to just be a class
+  implicit def parToParMap[A](p: Par[A]): ParWrap[A] = new ParWrap(p)
+
+  class ParWrap[A](p: Par[A]){
+    def map2[B,C](par: Par[B])(f: (A, B) => C): Par[C] = Par.map2(p, par)(f)
   }
 }
