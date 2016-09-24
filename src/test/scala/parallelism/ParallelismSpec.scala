@@ -9,7 +9,10 @@ import parallelism.Par._
 // before I had any passing tests (it encourages api design before writing any implementation)
 class ParallelismSpec extends FlatSpec with MustMatchers {
   // why does this need 5 threads to run?
-  implicit val ec: ExecutorService = Executors.newFixedThreadPool(5)
+  // turns out this is a genuine bug covered later in the book
+  // since I'm more focused on the functional design I'm skipping the actor based fix -
+  // but using only unlimited thread pools solves the problem
+  implicit val ec: ExecutorService = Executors.newCachedThreadPool()
 
   "Paralleller#sum" must "add up the given list of ints" in {
     Par.run(Parallelism.sum(Vector(1, 2, 3, 4, 5))).get mustBe 15
