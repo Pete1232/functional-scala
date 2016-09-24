@@ -28,6 +28,35 @@ object Par {
     def cancel(evenIfRunning: Boolean): Boolean = false
   }
 
+  private case class Map2Future[A, B, C](a: Future[A], b: Future[B], f: (A, B) => C) extends Future[C] {
+    def isDone: Boolean = a.isDone || b.isDone
+    def isCancelled: Boolean = a.isCancelled || b.isCancelled
+    def cancel(evenIfRunning: Boolean): Boolean = a.cancel(evenIfRunning) && b.cancel(evenIfRunning)
+
+    def get(): C = get(Long.MaxValue, TimeUnit.DAYS)
+
+    def get(timeout: Long, units: TimeUnit): C = {
+      // taken from the solutions
+      // thinking about it if this isn't here we have to re-evaluate the future on every call to get!
+      @volatile var cache: Option[C] = None
+      // get the requested timeout in nanoseconds
+      cache match {
+        case Some(s) => s
+        case _ => {
+          val timer = TimeUnit.NANOSECONDS.convert(timeout, units)
+          val startTime = System.nanoTime()
+          val evalA = a.get(timeout, TimeUnit.NANOSECONDS)
+          val afterA = System.nanoTime() - startTime
+          val evalB = b.get(timeout - afterA, TimeUnit.NANOSECONDS)
+          val result = f(evalA, evalB)
+          cache = Some(result)
+          result
+        }
+      }
+
+    }
+  }
+
   // creates a 'unit of parallelism' (not a formal term)
   // takes an unevaluated A and immediately returns its value
   def unit[A](a: A): Par[A] = ExecutorService => UnitFuture(a)
@@ -47,7 +76,7 @@ object Par {
   def map2[A,B,C](a: Par[A], b: Par[B])(f: (A,B) => C): Par[C] = (es: ExecutorService) => {
     val af = a(es)
     val bf = b(es)
-    UnitFuture(f(af.get, bf.get))
+    Map2Future(af, bf, f)
   }
 
   // move a Par to a separate logical thread
