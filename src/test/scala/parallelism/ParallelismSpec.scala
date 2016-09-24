@@ -6,12 +6,12 @@ import org.scalatest.{FlatSpec, MustMatchers}
 
 // interesting consequence of the process described in the book is that it was a long time
 // before I had any passing tests (it encourages api design before writing any implementation)
-class ParallellerSpec extends FlatSpec with MustMatchers {
+class ParallelismSpec extends FlatSpec with MustMatchers {
   // why does this need 5 threads to run?
   implicit val ec: ExecutorService = Executors.newFixedThreadPool(5)
 
   "Paralleller#sum" must "add up the given list of ints" in {
-    Par.run(Paralleller.sum(Vector(1, 2, 3, 4, 5))).get mustBe 15
+    Par.run(Parallelism.sum(Vector(1, 2, 3, 4, 5))).get mustBe 15
   }
 
   "Par" must "have some way to wrap a value" in {

@@ -4,7 +4,7 @@ import java.util.concurrent.{Callable, ExecutorService, Future, TimeUnit}
 
 import parallelism.Par.Par
 
-object Paralleller {
+object Parallelism {
 
   def sum(ints: IndexedSeq[Int]): Par[Int] =
     if (ints.size <= 1)
@@ -42,16 +42,15 @@ object Par {
       // get the requested timeout in nanoseconds
       cache match {
         case Some(s) => s
-        case _ => {
+        case _ =>
           val timer = TimeUnit.NANOSECONDS.convert(timeout, units)
           val startTime = System.nanoTime()
-          val evalA = a.get(timeout, TimeUnit.NANOSECONDS)
+          val evalA = a.get(timer, TimeUnit.NANOSECONDS)
           val afterA = System.nanoTime() - startTime
-          val evalB = b.get(timeout - afterA, TimeUnit.NANOSECONDS)
+          val evalB = b.get(timer - afterA, TimeUnit.NANOSECONDS)
           val result = f(evalA, evalB)
           cache = Some(result)
           result
-        }
       }
 
     }
