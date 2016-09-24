@@ -100,4 +100,7 @@ object Par {
   class ParWrap[A](p: Par[A]){
     def map2[B,C](par: Par[B])(f: (A, B) => C): Par[C] = Par.map2(p, par)(f)
   }
+
+  def map[A,B](pa: Par[A])(f: A => B): Par[B] =
+    map2(pa, unit(()))((a,_) => f(a))
 }
