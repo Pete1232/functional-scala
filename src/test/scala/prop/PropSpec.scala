@@ -29,7 +29,7 @@ class PropSpec extends FlatSpec with MustMatchers {
 
   "Gen#choose" must "generate an integer in the range" in {
     val rng = SimpleRNG(42)
-    def intList(start: Int, end: Int) = new Gen(RNG.nextInt).choose(start, end).sample.runWith(rng)
+    def intList(start: Int, end: Int) = Gen(RNG.nextInt).choose(start, end).sample.runWith(rng)
 
     // definitely should be rewritten using the property testing library
     0 to 9 must contain(intList(0, 10)._1)
@@ -39,10 +39,24 @@ class PropSpec extends FlatSpec with MustMatchers {
   it should "not work if the type is not int" in {
     val rng = SimpleRNG(42)
     intercept[MatchError] {
-      new Gen(RNG.ints(5)).choose(0, 10).sample.runWith(rng)
+      Gen(RNG.ints(5)).choose(0, 10).sample.runWith(rng)
     }
     intercept[MatchError] {
-      new Gen(RNG.double).choose(0, 10).sample.runWith(rng)
+      Gen(RNG.double).choose(0, 10).sample.runWith(rng)
     }
+  }
+
+  "Gen#listOfN" must "return a generator for a list of A" in {
+    val rng = SimpleRNG(42)
+    val list = Gen(RNG.nextInt).listOfN(5, Gen(RNG.nextInt))
+    val resultList = list.sample.runWith(rng)._1
+    resultList.length mustBe 5
+    resultList mustBe  List(16159453, -1281479697, -340305902, -2015756020, 1770001318)
+
+    val listList = Gen(RNG.nextInt).listOfN(5, Gen(RNG.ints(2)))
+    val resultListList = listList.sample.runWith(rng)._1
+    resultListList.length mustBe 5
+    resultListList.forall(_.length == 2) mustBe true
+    resultListList.head mustBe (List(16159453, -1281479697))
   }
 }
