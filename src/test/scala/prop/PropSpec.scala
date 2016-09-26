@@ -29,12 +29,12 @@ class PropSpec extends FlatSpec with MustMatchers {
 
   "Gen#choose" must "generate an integer in the range" in {
     val rng = SimpleRNG(42)
-    def intList(start: Int, end: Int) = Gen(RNG.nextInt).choose(start, end).sample.runWith(rng)
+    def intInRange(start: Int, end: Int) = Gen(RNG.nonNegativeInt).choose(start, end).sample.runWith(rng)
 
     // definitely should be rewritten using the property testing library
-    0 to 9 must contain(intList(0, 10)._1)
-    0 to 1 must contain(intList(0, 2)._1)
-    15 to 99 must contain(intList(15, 100)._1)
+    0 to 9 must contain(intInRange(0, 10)._1)
+    0 to 1 must contain(intInRange(0, 2)._1)
+    15 to 99 must contain(intInRange(15, 100)._1)
   }
   it should "not work if the type is not int" in {
     val rng = SimpleRNG(42)
@@ -58,5 +58,23 @@ class PropSpec extends FlatSpec with MustMatchers {
     resultListList.length mustBe 5
     resultListList.forall(_.length == 2) mustBe true
     resultListList.head mustBe (List(16159453, -1281479697))
+  }
+
+  "Gen#chooseN" must "generate a list of integers in a range" in {
+    val rng = SimpleRNG(42)
+    def intsInRange(start: Int, end: Int, n: Int = 2) = Gen(RNG.nonNegativeInt).chooseN(start, end, n).sample.runWith(rng)
+
+    intsInRange(0, 9)._1.forall(i => (0 to 10).contains(i)) mustBe true
+    intsInRange(0, 2)._1.forall(i => (0 to 1).contains(i)) mustBe true
+    intsInRange(15, 100)._1.forall(i => (15 to 99).contains(i)) mustBe true
+
+    intsInRange(0, 9, 10)._1.length mustBe 10
+    intsInRange(0, 9, 10)._1.forall(i => (0 to 10).contains(i)) mustBe true
+  }
+
+  "Gen#string" must "return a random string of the given length" in {
+    val rng = SimpleRNG(42)
+    val string = Gen(RNG.nonNegativeInt).string(50).sample.runWith(rng)._1
+    string.length mustBe 50
   }
 }
