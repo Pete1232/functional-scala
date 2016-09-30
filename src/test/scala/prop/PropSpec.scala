@@ -89,4 +89,8 @@ class PropSpec extends FlatSpec with MustMatchers {
     val rng = SimpleRNG(42)
     Gen(RNG.nonNegativeInt).flatMap(a => Gen(State.unit(a))).sample.runWith(rng)._1 mustBe 16159453
   }
+
+  "Gen#union" must "not combine two generators of different type" in{
+    "Gen(State.unit(5)).union(Gen(State.unit(5)), Gen(State.unit(\"\")))" mustNot compile
+  }
 }

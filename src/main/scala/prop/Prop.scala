@@ -6,17 +6,19 @@ trait Prop {
   def check: Boolean
 
   def &&(p: Prop): Prop =
-    new Prop { override def check = Prop.this.check && p.check }
+    new Prop {
+      override def check = Prop.this.check && p.check
+    }
 }
 
-case class Gen[A](sample: State[RNG,A]){
+case class Gen[A](sample: State[RNG, A]) {
   /*
     Primitives
    */
   def choose(start: Int, stopExclusive: Int): Gen[Int] =
-    new Gen(sample.map {
-      case i: Int => i % (stopExclusive - start) + start
-    })
+  new Gen(sample.map {
+    case i: Int => i % (stopExclusive - start) + start
+  })
 
   def unit[A](a: => A): Gen[A] = new Gen(State.unit(a))
 
@@ -54,4 +56,9 @@ case class Gen[A](sample: State[RNG,A]){
 
   def flatMap[B](f: A => Gen[B]): Gen[B] =
     Gen(sample.flatMap(a => f(a).sample))
+
+  def union[A](g1: Gen[A], g2: Gen[A]): Gen[A] =
+    boolean.flatMap { gen1 =>
+      if (gen1) g1 else g2
+    }
 }
