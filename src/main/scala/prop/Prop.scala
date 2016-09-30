@@ -27,6 +27,13 @@ case class Gen[A](sample: State[RNG,A]){
       )
     )
 
+  def listOfN(size: Int): Gen[List[A]] =
+    listOfN(size, this)
+
+  def listOfN(size: Gen[Int]): Gen[List[A]] = {
+    size.flatMap(n => listOfN(n))
+  }
+
   def genToOption(g: Gen[A]): Gen[Option[A]] =
     new Gen(g.sample.map(Some(_)))
 
@@ -44,4 +51,7 @@ case class Gen[A](sample: State[RNG,A]){
 
   def string(length: Int): Gen[String] =
     new Gen(listOfN(length, choose(32, 127)).sample.map(_.map(_.toChar.toString).reduceLeft(_ + _)))
+
+  def flatMap[B](f: A => Gen[B]): Gen[B] =
+    Gen(sample.flatMap(a => f(a).sample))
 }
