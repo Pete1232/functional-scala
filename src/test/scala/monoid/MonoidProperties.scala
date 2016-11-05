@@ -21,6 +21,10 @@ abstract class MonoidProperties[A](m: Monoid[A])(implicit arbitrary: Arbitrary[A
   property("foldMap must use op to fold a list after mapping the values") = forAll{ (as: List[A]) =>
     m.foldMap(as)((a) => a) == as.foldLeft(m.id)((x, y) => op(x, y))
   }
+
+  property("foldMapV must use op to fold a list after mapping the values") = forAll{ (as: IndexedSeq[A]) =>
+    m.foldMapV(as)((a) => a) == as.foldLeft(m.id)((x, y) => op(x, y))
+  }
 }
 
 object IntUnderAdditionMonoidProps extends MonoidProperties(IntUnderAdditionMonoid)
