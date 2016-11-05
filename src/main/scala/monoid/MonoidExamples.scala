@@ -1,39 +1,30 @@
 package monoid
 
-trait Monoid[A] {
-  def op(a1: A, a2: A): A
+object MonoidExamples {
 
-  def id: A
-}
+  object IntUnderAdditionMonoid extends Monoid[Int] {
+    override def op(a1: Int, a2: Int): Int = a1 + a2
 
-object Monoids {
-  val intAddition: Monoid[Int] =
-    new Monoid[Int]() {
-      override def op(a1: Int, a2: Int): Int = a1 + a2
+    override def id: Int = 0
+  }
 
-      override def id: Int = 0
-    }
+  object IntUnderMultiplicationMonoid extends Monoid[Int] {
+    override def op(a1: Int, a2: Int): Int = a1 * a2
 
-  val intMultiplication: Monoid[Int] =
-    new Monoid[Int]() {
-      override def op(a1: Int, a2: Int): Int = a1 * a2
+    override def id: Int = 1
+  }
 
-      override def id: Int = 1
-    }
+  object BooleanOrMonoid extends Monoid[Boolean] {
+    override def op(a1: Boolean, a2: Boolean): Boolean = a1 || a2
 
-  val booleanOr: Monoid[Boolean] =
-    new Monoid[Boolean]() {
-      override def op(a1: Boolean, a2: Boolean): Boolean = a1 || a2
+    override def id: Boolean = false
+  }
 
-      override def id: Boolean = false
-    }
+  object BooleanAndMonoid extends Monoid[Boolean] {
+    override def op(a1: Boolean, a2: Boolean): Boolean = a1 && a2
 
-  val booleanAnd: Monoid[Boolean] =
-    new Monoid[Boolean]() {
-      override def op(a1: Boolean, a2: Boolean): Boolean = a1 && a2
-
-      override def id: Boolean = true
-    }
+    override def id: Boolean = true
+  }
 
   def optionMonoid[A]: Monoid[Option[A]] =
     new Monoid[Option[A]] {
