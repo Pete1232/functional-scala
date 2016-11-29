@@ -55,7 +55,7 @@ abstract class FutureOMonadProps[A, B, C](implicit arb: Arbitrary[A],
 }
 
 // note for work: replace these (random) types with a test for each model we use
-//object FutureOMonadStringProps extends FutureOMonadProps[String, Int, Boolean]
+object FutureOMonadStringProps extends FutureOMonadProps[String, Int, Boolean]
 
 class FutureOMonadStringSpec extends AsyncWordSpec with MustMatchers {
   "FutureOMonad" must {
