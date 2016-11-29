@@ -1,27 +1,28 @@
 package examples
 
-import examples.Types.FutureO
+import examples.Types.FutureOption
 import org.scalacheck.Prop.forAll
 import org.scalacheck.{Arbitrary, Properties}
+import org.scalatest.{AsyncWordSpec, MustMatchers, WordSpec}
 
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 import scala.util.{Failure, Success}
 
 abstract class FutureOMonadProps[A, B, C](implicit arb: Arbitrary[A],
-                                          arbFunction: Arbitrary[(A) => FutureO[B]],
-                                          arbFunction2: Arbitrary[(B) => FutureO[C]])
+                                          arbFunction: Arbitrary[(A) => FutureOption[B]],
+                                          arbFunction2: Arbitrary[(B) => FutureOption[C]])
   extends Properties("FutureOMonad") {
-  property("flatMap must be associative") = forAll { (f: (A) => FutureO[B], g: (B) => FutureO[C], testValue: A) =>
+  property("flatMap must be associative") = forAll { (f: (A) => FutureOption[B], g: (B) => FutureOption[C], testValue: A) =>
 
     val lhs = // a.flatMap(f).flatMap(g)
-      FutureOMonad.flatMap(
-        FutureOMonad.flatMap(FutureOMonad.unit(testValue))(a => f(a))
+      FutureO.flatMap(
+        FutureO.flatMap(FutureO.unit(testValue))(a => f(a))
       )(b => g(b))
 
     val rhs = // a.flatMap(f.flatMap(g))
-      FutureOMonad.flatMap(FutureOMonad.unit(testValue))(a =>
-        FutureOMonad.flatMap(f(a))(b =>
+      FutureO.flatMap(FutureO.unit(testValue))(a =>
+        FutureO.flatMap(f(a))(b =>
           g(b)))
     compareFutureO(lhs, rhs)
   }
@@ -29,20 +30,20 @@ abstract class FutureOMonadProps[A, B, C](implicit arb: Arbitrary[A],
   property("unit must be an identity under composition with flatMap") = forAll { (testValue: A) =>
     //a.flatMap(unit) == a
     compareFutureO(
-      FutureOMonad.flatMap(FutureOMonad.unit(testValue))(a => FutureOMonad.unit(a)),
-      FutureOMonad.unit(testValue)
+      FutureO.flatMap(FutureO.unit(testValue))(a => FutureO.unit(a)),
+      FutureO.unit(testValue)
     )
   }
 
-  property("unit must be an identity under composition with flatMap and any function") = forAll { (f: (A) => FutureO[B], testValue: A) =>
+  property("unit must be an identity under composition with flatMap and any function") = forAll { (f: (A) => FutureOption[B], testValue: A) =>
     //a.flatMap(f) == f(a)
     compareFutureO(
-      FutureOMonad.flatMap(FutureOMonad.unit(testValue))(a => f(a)),
+      FutureO.flatMap(FutureO.unit(testValue))(a => f(a)),
       f(testValue)
     )
   }
 
-  private def compareFutureO[T](lhs: FutureO[T], rhs: FutureO[T]): Boolean = {
+  private def compareFutureO[T](lhs: FutureOption[T], rhs: FutureOption[T]): Boolean = {
     Await.ready(lhs, Duration.Inf)
     Await.ready(rhs, Duration.Inf)
     (lhs.value, rhs.value) match {
@@ -54,4 +55,32 @@ abstract class FutureOMonadProps[A, B, C](implicit arb: Arbitrary[A],
 }
 
 // note for work: replace these (random) types with a test for each model we use
-object FutureOMonadStringProps extends FutureOMonadProps[String, Int, Boolean]
+//object FutureOMonadStringProps extends FutureOMonadProps[String, Int, Boolean]
+
+class FutureOMonadStringSpec extends AsyncWordSpec with MustMatchers{
+  "FutureOMonad" must {
+    "define map and flatMap methods" in {
+      val alice = FutureO.unit("Alice")
+      val bob = FutureO.unit("Bob")
+
+      FutureO.flatMap(alice)(a =>
+        FutureO.map(bob)(b =>
+          a + " and " + b
+        )
+      ).map(_ mustBe Some("Alice and Bob"))
+    }
+  }
+  it must {
+    "function correctly in a for-comprehension" in {
+      val alice: FutureO[String] = FutureO("Alice")
+      val bob: FutureO[String] = FutureO("Bob")
+
+      val result = for{
+        a <- alice
+        b <- bob
+      } yield a + " and " + b
+
+      result.map(_ mustBe Some("Alice and Bob"))
+    }
+  }
+}
