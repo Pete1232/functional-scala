@@ -1,15 +1,15 @@
 package functional_state
 
-import State._
+import functional_state.State._
 
 case class State[S, +A](runWith: S => (A, S)) {
 
   def flatMap[B](g: A => State[S, B]): State[S, B] =
     State(
       s => {
-//        flatten - obtain the result a using s and iterate the state to s1
+        //        flatten - obtain the result a using s and iterate the state to s1
         val (a, s1) = runWith(s)
-//        map - calculate a new result and iterate the state again based on the previous result a
+        //        map - calculate a new result and iterate the state again based on the previous result a
         g(a)
           .runWith(s1)
       }

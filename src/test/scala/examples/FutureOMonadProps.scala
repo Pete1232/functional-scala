@@ -3,7 +3,7 @@ package examples
 import examples.Types.FutureOption
 import org.scalacheck.Prop.forAll
 import org.scalacheck.{Arbitrary, Properties}
-import org.scalatest.{AsyncWordSpec, MustMatchers, WordSpec}
+import org.scalatest.{AsyncWordSpec, MustMatchers}
 
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
@@ -57,7 +57,7 @@ abstract class FutureOMonadProps[A, B, C](implicit arb: Arbitrary[A],
 // note for work: replace these (random) types with a test for each model we use
 //object FutureOMonadStringProps extends FutureOMonadProps[String, Int, Boolean]
 
-class FutureOMonadStringSpec extends AsyncWordSpec with MustMatchers{
+class FutureOMonadStringSpec extends AsyncWordSpec with MustMatchers {
   "FutureOMonad" must {
     "define map and flatMap methods" in {
       val alice = FutureO.unit("Alice")
@@ -75,7 +75,7 @@ class FutureOMonadStringSpec extends AsyncWordSpec with MustMatchers{
       val alice: FutureO[String] = FutureO("Alice")
       val bob: FutureO[String] = FutureO("Bob")
 
-      val result = for{
+      val result = for {
         a <- alice
         b <- bob
       } yield a + " and " + b

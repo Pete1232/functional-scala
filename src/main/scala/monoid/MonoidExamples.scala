@@ -26,7 +26,7 @@ object MonoidExamples {
     override def id: Boolean = true
   }
 
-  class OptionMonoid[A] extends Monoid[Option[A]]{
+  class OptionMonoid[A] extends Monoid[Option[A]] {
     override def op(a1: Option[A], a2: Option[A]): Option[A] =
       a1 orElse a2
 
@@ -52,4 +52,5 @@ object MonoidExamples {
 
     override def id: (A) => A = (a) => a
   }
+
 }

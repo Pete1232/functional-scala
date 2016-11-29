@@ -1,21 +1,21 @@
 package collections
 
+import collections.SimpleStream._
 import org.scalatest.{FlatSpec, MustMatchers}
-import SimpleStream._
 
 class SimpleStreamSpec extends FlatSpec with MustMatchers {
   "SimpleStream#apply" must "return Cons when called with values" in {
     apply(5, 6, 7) match {
-      case Cons(_,_) =>
+      case Cons(_, _) =>
       case _ => fail("The stream must not be empty")
     }
   }
   it must "build a stream containing the correct values" in {
     apply(5, 6, 7) match {
-      case Cons(h,t) => {
+      case Cons(h, t) => {
         h() mustBe 5
         t() match {
-          case Cons(h,t) => {
+          case Cons(h, t) => {
             h() mustBe 6
             t() match {
               case Cons(h, t) => {

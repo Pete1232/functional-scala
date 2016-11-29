@@ -1,7 +1,7 @@
 package functional_state
 
+import functional_state.RNG._
 import org.scalatest.{FlatSpec, MustMatchers}
-import RNG._
 
 //Note that the state is NEVER mentioned in the client code (i.e. the tests)
 class RNGSpec extends FlatSpec with MustMatchers {
@@ -15,13 +15,13 @@ class RNGSpec extends FlatSpec with MustMatchers {
     simpleRNG.nextInt mustBe(16159453, SimpleRNG(1059025964525L))
     simpleRNG.nextInt mustBe(16159453, SimpleRNG(1059025964525L))
     simpleRNG.nextInt mustBe(16159453, SimpleRNG(1059025964525L))
-    nextInt.runWith(simpleRNG) mustBe (16159453, SimpleRNG(1059025964525L))
+    nextInt.runWith(simpleRNG) mustBe(16159453, SimpleRNG(1059025964525L))
   }
   it must "return (-1281479697, SimpleRNG(197491923327988)) when seeded with 42 and called twice" in {
-//    Additional api due to definition of nextInt
-//    Could hide away if desired, or even add a similar api for the other methods
-//    This is less powerful (it runs immediately so no mapping) but is cleaner and easier to understand at a glance
-//    Note this is basically the api for scala.util.Random
+    //    Additional api due to definition of nextInt
+    //    Could hide away if desired, or even add a similar api for the other methods
+    //    This is less powerful (it runs immediately so no mapping) but is cleaner and easier to understand at a glance
+    //    Note this is basically the api for scala.util.Random
     SimpleRNG(42).nextInt._2.nextInt mustBe(-1281479697, SimpleRNG(197491923327988L))
   }
 
@@ -33,11 +33,11 @@ class RNGSpec extends FlatSpec with MustMatchers {
     val rng = SimpleRNG(42)
     nonNegativeInt.runWith(nonNegativeInt.runWith(rng))
       .mustBe(1281479696, SimpleRNG(197491923327988L))
-//    rng.nonNegativeInt.nonNegativeInt
-//      .mustBe(1281479696, SimpleRNG(197491923327988L))
+    //    rng.nonNegativeInt.nonNegativeInt
+    //      .mustBe(1281479696, SimpleRNG(197491923327988L))
   }
   it must "return (16159453, SimpleRNG(1059025964525)) when evaluating (Int.MinValue, SimpleRNG(42))" in {
-    nonNegativeInt.runWith(MockRNG) mustBe (Int.MaxValue, SimpleRNG(42))
+    nonNegativeInt.runWith(MockRNG) mustBe(Int.MaxValue, SimpleRNG(42))
   }
 
   "RNG#double" must "return the passed value divided by Int.MaxValue" in {
@@ -106,7 +106,7 @@ class RNGSpec extends FlatSpec with MustMatchers {
 
   "RNG#randToRNG" must "implicitly convert a (result, rng) to its rng" in {
     val rng = SimpleRNG(42)
-    nextInt.map(a => a).runWith(rng).nextInt mustBe (-1281479697, SimpleRNG(197491923327988L))
+    nextInt.map(a => a).runWith(rng).nextInt mustBe(-1281479697, SimpleRNG(197491923327988L))
   }
 
   "RNG#nonNegativeLessThan" must "return 3 when seeded with 42" in {

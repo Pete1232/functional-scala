@@ -2,7 +2,7 @@ package functional_state
 
 import functional_state.State.Rand
 
-trait RNG{
+trait RNG {
   def nextInt: (Int, RNG)
 }
 
@@ -11,12 +11,12 @@ object RNG {
 
   implicit def randToRNG[A](rand: (A, RNG)): RNG = rand._2
 
-//  def map[S,A,B](s: State[S, A])(f: A => B): State[S, B]
-//  replacing the implementation here is fine as far as map is concerned
-//  however - it will break type inference for the client methods
-//  either:
-//       (bad) specify the type every time we call map
-//       (good) implement this in another interface and inherit
+  //  def map[S,A,B](s: State[S, A])(f: A => B): State[S, B]
+  //  replacing the implementation here is fine as far as map is concerned
+  //  however - it will break type inference for the client methods
+  //  either:
+  //       (bad) specify the type every time we call map
+  //       (good) implement this in another interface and inherit
 
   def sequence[A](fs: List[Rand[A]]): Rand[List[A]] =
     fs.foldRight(State.unit[RNG, List[A]](List[A]()))((f, acc) => f.map2(acc)(_ :: _))
@@ -45,44 +45,44 @@ object RNG {
   //      (wasn't sure about how to keep this random - and this isn't perfect)
   //      iterate negative by 1 and change the sign
   def nonNegativeInt: Rand[Int] =
-    State[RNG, Int](_.nextInt).map{ i =>
-      if (i < 0) -(i + 1) else i
-    }
+  State[RNG, Int](_.nextInt).map { i =>
+    if (i < 0) -(i + 1) else i
+  }
 
   def double: Rand[Double] =
     State[RNG, Int](_.nextInt).map(_.toDouble / Int.MaxValue)
 
   def intDouble: Rand[(Int, Double)] =
-    State[RNG, Int](_.nextInt).flatMap{ i =>
-      State[RNG, Double](double.runWith).map{ j =>
+    State[RNG, Int](_.nextInt).flatMap { i =>
+      State[RNG, Double](double.runWith).map { j =>
         (i, j)
       }
     }
 
   def doubleInt: Rand[(Double, Int)] =
-    State[RNG, Double](double.runWith).flatMap{ i =>
-      State[RNG, Int](_.nextInt).map{ j =>
+    State[RNG, Double](double.runWith).flatMap { i =>
+      State[RNG, Int](_.nextInt).map { j =>
         (i, j)
       }
     }
 
   def double3: Rand[(Double, Double, Double)] =
-    State[RNG, Double](double.runWith).flatMap{ i =>
-      State[RNG, Double](double.runWith).flatMap{ j =>
-        State[RNG, Double](double.runWith).map{ k =>
+    State[RNG, Double](double.runWith).flatMap { i =>
+      State[RNG, Double](double.runWith).flatMap { j =>
+        State[RNG, Double](double.runWith).map { k =>
           (i, j, k)
+        }
       }
     }
-  }
 
   def ints(count: Int): Rand[List[Int]] =
     sequence(List.fill(count)(State[RNG, Int](_.nextInt)))
 
   def nonNegativeLessThan(n: Int): Rand[Int] =
-    State[RNG, Int](nonNegativeInt.runWith).flatMap{ i =>
+    State[RNG, Int](nonNegativeInt.runWith).flatMap { i =>
       val mod = i % n
-      if (i + (n-1) - mod >= 0)
-        // state had already been transitioned by nonNegativeInt
+      if (i + (n - 1) - mod >= 0)
+      // state had already been transitioned by nonNegativeInt
         State.unit(mod)
       else nonNegativeLessThan(n)
     }
