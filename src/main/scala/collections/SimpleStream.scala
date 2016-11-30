@@ -1,6 +1,6 @@
 package collections
 
-import SimpleStream._
+import collections.SimpleStream._
 
 // Stream == Lazy List
 sealed trait SimpleStream[+A] {
@@ -80,7 +80,7 @@ sealed trait SimpleStream[+A] {
   //  e.g. appending a more specific type than expected, like Apple instead of Fruit, would fail to compile
   //  A is a lower bound for B. i.e. B is a supertype of A
   def append[B >: A](b: => B): SimpleStream[B] =
-    foldRight(SimpleStream(b))((b, bs) => cons(b, bs))
+  foldRight(SimpleStream(b))((b, bs) => cons(b, bs))
 
   def flatMap[B](f: A => SimpleStream[B]): SimpleStream[B] =
     foldRight(Empty: SimpleStream[B]) { (a, bs) =>

@@ -1,7 +1,7 @@
 package prop
 
-import functional_state.{RNG, State}
 import functional_state.RNG.SimpleRNG
+import functional_state.{RNG, State}
 import org.scalatest.{FlatSpec, MustMatchers}
 
 class PropSpec extends FlatSpec with MustMatchers {
@@ -51,7 +51,7 @@ class PropSpec extends FlatSpec with MustMatchers {
     val list = Gen(RNG.nextInt).listOfN(5, Gen(RNG.nextInt))
     val resultList = list.sample.runWith(rng)._1
     resultList.length mustBe 5
-    resultList mustBe  List(16159453, -1281479697, -340305902, -2015756020, 1770001318)
+    resultList mustBe List(16159453, -1281479697, -340305902, -2015756020, 1770001318)
 
     val listList = Gen(RNG.nextInt).listOfN(5, Gen(RNG.ints(2)))
     val resultListList = listList.sample.runWith(rng)._1
@@ -59,12 +59,12 @@ class PropSpec extends FlatSpec with MustMatchers {
     resultListList.forall(_.length == 2) mustBe true
     resultListList.head mustBe (List(16159453, -1281479697))
   }
-  it must "be able to dynamically generate the list size" in{
+  it must "be able to dynamically generate the list size" in {
     val rng = SimpleRNG(42)
     val list = Gen(RNG.nextInt).listOfN(5)
     val resultList = list.sample.runWith(rng)._1
     resultList.length mustBe 5
-    resultList mustBe  List(16159453, -1281479697, -340305902, -2015756020, 1770001318)
+    resultList mustBe List(16159453, -1281479697, -340305902, -2015756020, 1770001318)
   }
 
   "Gen#chooseN" must "generate a list of integers in a range" in {
@@ -90,7 +90,7 @@ class PropSpec extends FlatSpec with MustMatchers {
     Gen(RNG.nonNegativeInt).flatMap(a => Gen(State.unit(a))).sample.runWith(rng)._1 mustBe 16159453
   }
 
-  "Gen#union" must "not combine two generators of different type" in{
+  "Gen#union" must "not combine two generators of different type" in {
     "Gen(State.unit(5)).union(Gen(State.unit(5)), Gen(State.unit(\"\")))" mustNot compile
   }
 }
