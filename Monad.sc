@@ -201,8 +201,7 @@ Await.result((for{
 } yield f + g).fo, Duration.Inf)
 
 trait Monad2[F[_], A]{
-  val fo: Future[Option[A]]
-  def unit[B](b: => B): F[B]
+  def unit[A](b: => A): F[A]
   def flatMap[S](f: A => F[S]): F[S]
   def map[S](f: A => S): F[S] =
     flatMap(a => unit(f(a)))
@@ -226,7 +225,7 @@ case class FutureOClassOnly[A](val fo: Future[Option[A]]) extends Monad2[FutureO
   //  override def unit[B](b: => B): FutureOClassOnly[B] =
   //  FutureOClassOnly(Future.successful(Option(b)))
 
-  override def unit[B](b: => B): FutureOClassOnly[B] =
+  override def unit[A](b: => A): FutureOClassOnly[A] =
     FutureOClassOnly.unit(b)
 
   override def flatMap[S](f: (A) => FutureOClassOnly[S]): FutureOClassOnly[S] =
@@ -250,3 +249,23 @@ Await.result((for{
 // I think it's best (or at least more intuitive)
 // to define the class as a Monad and move any required logic to the object
 // (probably just unit)
+
+
+case class FutureList[A](val fl: Future[List[A]])
+  extends Monad2[FutureList, A] {
+
+  override def unit[A](a: => A): FutureList[A] =
+    FutureList(Future.successful(List(a)))
+
+  override def flatMap[S](f: (A) => FutureList[S]): FutureList[S] =
+    FutureList(
+      fl.flatMap { list =>
+        val futures: List[Future[List[S]]] = list.map { a =>
+          f(a).fl
+        }
+        Future.reduce(futures){ (x, r) =>
+          x ++ r
+        }
+      }
+    )
+}
