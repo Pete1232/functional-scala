@@ -172,3 +172,81 @@ case class FutureO[A](fo: Future[Option[A]]){
 
 // so we get our map implementation for free!
 // in fact anything we can define in terms of just unit and flatMap we only have to define once in Monad
+
+case class FutureOSimple[A](fo: Future[Option[A]]){
+
+  def flatMap[S](f: (A) => FutureO[S]): FutureO[S] =
+    FutureO(
+      fo.flatMap{
+        case Some(a) => f(a).fo
+        case _ => Future.successful(None)
+      }
+    )
+
+  def map[S](f: (A) => S): FutureO[S] =
+    FutureO(
+      fo.map{
+        case Some(a) => Some(f(a))
+        case _ => None
+      }
+    )
+}
+
+val fp1 = FutureOSimple(Future.successful(Some("Alice")))
+val fp2 = FutureOSimple(Future.successful(Some("Bob")))
+
+Await.result((for{
+  f <- fp1
+  g <- fp2
+} yield f + g).fo, Duration.Inf)
+
+trait Monad2[F[_], A]{
+  val fo: Future[Option[A]]
+  def unit[B](b: => B): F[B]
+  def flatMap[S](f: A => F[S]): F[S]
+  def map[S](f: A => S): F[S] =
+    flatMap(a => unit(f(a)))
+}
+
+object FutureOClassOnly {
+  // have to do this again- should only be defined here
+  // could provide a Monad but shouldn't have to for unit - that would make it useless here
+  def unit[A](a: => A): FutureOClassOnly[A] =
+    FutureOClassOnly(Future.successful(Option(a)))
+
+  // but these two work fine!
+  def flatMap[A,S](foa: FutureOClassOnly[A])(f: (A) => FutureOClassOnly[S]): FutureOClassOnly[S] =
+    foa flatMap f
+
+  def map[A, S](foa: FutureOClassOnly[A])(f: A => S): FutureOClassOnly[S] =
+    foa map f
+}
+
+case class FutureOClassOnly[A](val fo: Future[Option[A]]) extends Monad2[FutureOClassOnly, A] {
+  //  override def unit[B](b: => B): FutureOClassOnly[B] =
+  //  FutureOClassOnly(Future.successful(Option(b)))
+
+  override def unit[B](b: => B): FutureOClassOnly[B] =
+    FutureOClassOnly.unit(b)
+
+  override def flatMap[S](f: (A) => FutureOClassOnly[S]): FutureOClassOnly[S] =
+    FutureOClassOnly(
+      fo.flatMap{
+        case Some(a) => f(a).fo
+        case _ => Future.successful(None)
+      }
+    )
+}
+
+val fz1 = FutureOClassOnly(Future.successful(Some("Alice")))
+val fz2 = FutureOClassOnly(Future.successful(Some("Bob")))
+
+Await.result((for{
+  f <- fz1
+  g <- fz2
+} yield f + g).fo, Duration.Inf)
+
+// conclusion?
+// I think it's best (or at least more intuitive)
+// to define the class as a Monad and move any required logic to the object
+// (probably just unit)
