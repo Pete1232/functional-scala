@@ -1,12 +1,11 @@
 package scalamock
 
 import org.mockito.ArgumentMatchers
+import org.mockito.Mockito.{times, when}
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.mockito.MockitoSugar
+import org.scalatest.prop.GeneratorDrivenPropertyChecks
 import org.scalatest.{MustMatchers, OneInstancePerTest, WordSpec}
-import org.mockito.Mockito.{times, when}
-import org.scalacheck.{Gen, Prop}
-import org.scalatest.prop.Checkers
 
 case class ExampleModel(id: String, name: String, age: Int)
 
@@ -28,8 +27,7 @@ trait Database {
 // TODO async testing once bug in ScalaMock is fixed (hopefully release 3.5.0 but maybe not until 4.0.0)
 // TODO mock case class (release 3.5.0)
 // TODO Detailed logging (re-added release 3.5.0)
-class DatabaseSpec extends WordSpec with MustMatchers with MockFactory with OneInstancePerTest with Checkers {
-
+class DatabaseSpec extends WordSpec with MustMatchers with MockFactory with OneInstancePerTest with GeneratorDrivenPropertyChecks {
   // global mock using OneInstancePerTest
   val dbScalaMock = stub[Database]
 
@@ -188,13 +186,11 @@ class DatabaseSpec extends WordSpec with MustMatchers with MockFactory with OneI
   //  Wanted anywhere AFTER following interaction:
   //    database.insert("yellow");
   "returning dynamic values (call handlers) with ScalaMock" in {
-    check (
-      Prop.forAll(Gen.alphaNumStr, Gen.alphaNumStr, Gen.choose(0, 100)) { (generatedId, generatedName, generatedAge) =>
-        dbScalaMock.makeModel _ when(*, *, *) onCall ((id: String, name: String, age: Int) => ExampleModel(id, name, age))
+    forAll{ (arbitraryId: String, arbitraryName: String, arbitraryAge: Int) =>
+      dbScalaMock.makeModel _ when(*, *, *) onCall ((id: String, name: String, age: Int) => ExampleModel(id, name, age))
 
-        dbScalaMock.makeModel(generatedId, generatedName, generatedAge) == ExampleModel(generatedId, generatedName, generatedAge)
-      }
-    )
+      dbScalaMock.makeModel(arbitraryId, arbitraryName, arbitraryAge) mustBe ExampleModel(arbitraryId, arbitraryName, arbitraryAge)
+    }
   }
   // cannot find an example of this with Mockito???
   "predicate matching with ScalaMock" in {
